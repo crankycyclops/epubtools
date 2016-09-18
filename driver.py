@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re, os, binascii
+import shutil, re, os, binascii
 from abc import ABCMeta, abstractmethod
 
 import util
@@ -192,10 +192,7 @@ class Driver(object):
 
 	# Cleans up the mess left behind after an e-book conversion.	
 	def cleanup(self):
-
-		# TODO: cleanup /tmp directory containing filled in templates
-		# TODO: if extracted ZIP file, remove contents from /tmp
-		pass
+		shutil.rmtree(self.tmpOutputDir)
 
 	##########################################################################
 
@@ -235,6 +232,23 @@ class Driver(object):
 
 				except:
 					raise Exception('Failed to process one or more chapters.')
+
+	##########################################################################
+
+	# Creates a specially formatted ZIP file of the book's contents, per the
+	# ePub specifications.
+	def zipBook(self, outputFilename):
+
+		try:
+
+			if os.path.isfile(outputFilename):
+				os.remove(outputFilename)
+
+			util.zipdirs(self.tmpOutputDir + '/mimetype', outputFilename, False)
+			util.zipdirs([self.tmpOutputDir + '/META-INF', self.tmpOutputDir + '/OEBPS'], outputFilename)
+
+		except:
+			raise Exception('Failed to write output file ' + outputFilename)
 
 	##########################################################################
 
@@ -299,6 +313,9 @@ class Driver(object):
 			except:
 				raise Exception('Failed to read ' + templateName + ' template.')
 
+
+		# Finally, write the ePub file. Phew!
+		self.zipBook(outputFilename)
 
 	##########################################################################
 
