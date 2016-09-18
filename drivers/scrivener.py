@@ -6,14 +6,8 @@ import util, driver
 class Scrivener(driver.Driver):
 
 	# Constructor
-	def __init__(self, bookAuthor, bookTitle):
-		super().__init__(bookAuthor, bookTitle)
-
-	##########################################################################
-
-	# TODO
-	def processBook(self, outputFilename):
-		pass
+	def __init__(self, bookAuthor, bookTitle, copyrightYear):
+		super().__init__(bookAuthor, bookTitle, copyrightYear)
 
 	##########################################################################
 
