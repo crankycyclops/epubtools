@@ -123,6 +123,24 @@ class Driver(object):
 		chapterSpineEntries = '';
 		chapterTocEntries = '';
 		navmap = '';
+		playOrder = 2;
+
+		if self.includeCopyright:
+			navmap = (
+				navmap + '\n\t\t<navPoint id="copyright" playOrder="' +
+				str(playOrder) + '">\n' + '\t\t\t<navLabel>\n\t\t\t\t<text>\n' +
+				'\t\t\t\t\tCopyright Notice\n\t\t\t\t</text>\n' +
+				'\t\t\t</navLabel>\n\t\t\t<content src="copyright.xhtml" />\n' +
+				'\t\t</navPoint>\n'
+			)
+			playOrder += 1
+
+		navmap = (
+			navmap + '\n\t\t<navPoint id="toc" playOrder="' + str(playOrder) + '">\n' +
+			'\t\t\t<navLabel>\n\t\t\t\t<text>\n\t\t\t\t\tTable of Contents\n\t\t\t\t</text>\n' +
+			'\t\t\t</navLabel>\n\t\t\t<content src="toc.xhtml" />\n\t\t</navPoint>\n'
+		)
+		playOrder += 1
 
 		for chapter in self.chapterLog:
 
@@ -131,6 +149,13 @@ class Driver(object):
 			chapterManifestEntries = chapterManifestEntries + '\t\t<item id="' + chapterId + '" media-type="application/xhtml+xml" href="' + chapterFilename + '" />\n'
 			chapterSpineEntries = chapterSpineEntries + '\t\t<itemref idref="' + chapterId + '" linear="yes" />\n'
 			chapterTocEntries = chapterTocEntries + '<li><a href="' + chapterFilename + '">' + chapter['chapter'] + '</a></li>'
+			navmap = (
+				navmap + '\n\t\t<navPoint id="ch' + chapter['chapterSlug'] +
+				'" playOrder="' + str(playOrder) + '">\n' +
+				'\t\t\t<navLabel>\n\t\t\t\t<text>\n\t\t\t\t\t' + chapter['chapter'] + '\n\t\t\t\t</text>\n' +
+				'\t\t\t</navLabel>\n\t\t\t<content src="' + chapterFilename + '" />\n\t\t</navPoint>\n'
+			)
+			playOrder += 1
 
 		self.templateVars['%firstChapterFilename'] = self.chapterLog[0]['chapterSlug'] + '.xhtml'
 

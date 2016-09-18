@@ -16,9 +16,6 @@
 
 	<navMap>
 
-%navmap
-
-		<!--
 		<navPoint id="title" playOrder="1">
 			<navLabel>
 				<text>
@@ -28,33 +25,7 @@
 			<content src="title.xhtml" />
 		</navPoint>
 
-		<navPoint id="copyright" playOrder="2">
-			<navLabel>
-				<text>
-					Copyright Notice
-				</text>
-			</navLabel>
-			<content src="copyright.xhtml" />
-		</navPoint>
-
-		<navPoint id="toc" playOrder="3">
-			<navLabel>
-				<text>
-					Table of Contents
-				</text>
-			</navLabel>
-			<content src="toc.xhtml" />
-		</navPoint>
-
-		<navPoint id="ch1" playOrder="4">
-			<navLabel>
-				<text>
-					Chapter 1
-				</text>
-			</navLabel>
-			<content src="chapter1.xhtml" />
-		</navPoint>
-		-->
+%navmap
 
 	</navMap>
 
