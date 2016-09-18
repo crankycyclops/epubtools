@@ -93,11 +93,11 @@ class Driver(object):
 			'%uid': 'epub.' + titleSlug + '.' + authorSlug + '.' + self.uid,
 			'%title': self.bookTitle,
 			'%author': self.bookAuthor,
-			'%authorLastfirst': self.bookAuthor, #TODO: split on first whitespace and add comma
+			'%autLastfirst': self.bookAuthor, #TODO: split on first whitespace and add comma
 			'%publisher': self.bookPublisher,
 			'%lang': self.bookLang,
 			'%pubdate': self.pubDate,
-			'%copyrightyear': self.copyrightYear,
+			'%copyrightYear': self.copyrightYear,
 			'%coverImageManifestEntry': '<item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" />', 
 		};
 
@@ -157,6 +157,9 @@ class Driver(object):
 			)
 			playOrder += 1
 
+		self.templateVars['%chapterManifestEntries'] = chapterManifestEntries
+		self.templateVars['%chapterSpineEntries'] = chapterSpineEntries
+		self.templateVars['%chapterTocEntries'] = chapterTocEntries
 		self.templateVars['%firstChapterFilename'] = self.chapterLog[0]['chapterSlug'] + '.xhtml'
 
 	##########################################################################
@@ -178,10 +181,8 @@ class Driver(object):
 
 		# TODO: support ZIP archives by extracting first to /tmp
 		try:
-			self.inputDir = os.scandir(inputFilename) # Requires Python 3.5+
-
-		except FileNotFoundError:
-			raise Exception("Input directory '" + inputFilename + "' not found.")
+			self.inputPath = inputFilename
+			self.inputDir = util.natural_sort(os.listdir(inputFilename))
 
 		except:
 			raise Exception("An error occurred while trying to open '" + inputFilename + ".'")
@@ -214,22 +215,19 @@ class Driver(object):
 
 	# Called by processBook whenever it encounters another directory inside
 	# the parent. Recursively enters subdirectories.
-	def processChaptersDir(self, dirIterator):
+	def processChaptersDir(self, basePath, dirList):
 
 		# Process each chapter individually
-		for dirEntry in dirIterator:
-
-			if (dirEntry.name == '.' or dirEntry.name == '..'):
-				continue
+		for filename in dirList:
 
 			# Chapters might be organized into further subdirectories; don't miss them!
-			elif (dirEntry.is_dir()):
-				self.processChaptersDir(os.scandir(dirEntry.path))
+			if (os.path.isdir(basePath + '/' + filename)):
+				self.processChaptersDir(basePath + '/' + filename, os.listdir(basePath + '/' + filename))
 
 			else:
 
 				try:
-					self.processChapter(dirEntry.path)
+					self.processChapter(basePath + '/' + filename)
 
 				except IOError:
 					raise Exception('Failed to write one or more chapters.')
@@ -280,23 +278,26 @@ class Driver(object):
 			raise Exception('Failed to read container.xml template.')
 
 
-		# Write out stylesheet
-		try:
+		# Process chapters
+		self.processChaptersDir(self.inputPath, self.inputDir)
+		self.initChaptersTemplateVars()
 
-			cssTemplate = self.hydrate(open(self.scriptPath + '/templates/style.css', 'r').read())
+
+		# Write out filled-in templates
+		for templateName in ['style.css', 'book.opf']:
 
 			try:
-				open(self.tmpOutputDir + '/OEBPS/style.css', 'w').write(cssTemplate)
+
+				template = self.hydrate(open(self.scriptPath + '/templates/' + templateName, 'r').read())
+
+				try:
+					open(self.tmpOutputDir + '/OEBPS/' + templateName, 'w').write(template)
+				except:
+					raise Exception('Failed to write ' + templateName + '.')
+
 			except:
-				raise Exception('Failed to write style.css.')
+				raise Exception('Failed to read ' + templateName + ' template.')
 
-		except:
-			raise Exception('Failed to read style.css template.')
-
-
-		# Process chapters
-		self.processChaptersDir(self.inputDir)
-		self.initChaptersTemplateVars()
 
 	##########################################################################
 

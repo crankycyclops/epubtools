@@ -9,8 +9,8 @@
 		<dc:publisher>%publisher</dc:publisher>
 		<dc:language>%lang</dc:language>
 
-		<dc:creator id="creator-1" opf:role="aut" opf:file-as="%authorLastfirst">%author</dc:creator>
-		<meta refines="#creator-1" property="file-as">%authorLastfirst</meta>
+		<dc:creator id="creator-1" opf:role="aut" opf:file-as="%autLastfirst">%author</dc:creator>
+		<meta refines="#creator-1" property="file-as">%autLastfirst</meta>
 		<meta refines="#creator-1" property="role" scheme="marc:relators">aut</meta>
 
 		<!-- Example date: 2015-06-30 -->
