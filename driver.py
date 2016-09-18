@@ -97,13 +97,14 @@ class Driver(object):
 		self.templateVars = {
 			'%uid': 'epub.' + titleSlug + '.' + authorSlug + '.' + self.uid,
 			'%title': self.bookTitle,
+			'%upperTitle': self.bookTitle.upper(),
 			'%author': self.bookAuthor,
 			'%autLastfirst': self.bookAuthor, #TODO: split on first whitespace and add comma
 			'%publisher': self.bookPublisher,
 			'%lang': self.bookLang,
 			'%pubdate': self.pubDate,
 			'%copyrightYear': self.copyrightYear,
-			'%coverImageManifestEntry': '<item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" />', 
+			'%coverImageManifestEntry': '<item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" />'
 		};
 
 		# We may or may not want to include a separate automagically generated copyright page.
