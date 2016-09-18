@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" xmlns:opf="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid" xml:lang="en-US" prefix="cc: http://creativecommons.org/ns#">
+
+	<opf:metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+
+		<dc:identifier id="uid">%uid</dc:identifier>
+
+		<dc:title>%title</dc:title>
+		<dc:publisher>%publisher</dc:publisher>
+		<dc:language>%lang</dc:language>
+
+		<dc:creator id="creator-1" opf:role="aut" opf:file-as="%authorLastfirst">%author</dc:creator>
+		<meta refines="#creator-1" property="file-as">%authorLastfirst</meta>
+		<meta refines="#creator-1" property="role" scheme="marc:relators">aut</meta>
+
+		<!-- Example: 2015-06-30 -->
+		<dc:date>%pubdate</dc:date>
+		<meta property="dcterms:modified">%pubdateT00:00:00Z</meta>
+
+		<!-- rights expressions for the work as a whole -->
+		<dc:rights>%title. &#169;%copyrightYear %author. All rights reserved under International and Pan-American Copyright Conventions. Published internationally by %publisher. No part of this book may be reproduced in any form or by any means without express written permission from the author.</dc:rights>
+
+		<!-- cover meta element included for 2.0 reading system compatibility: -->
+		<meta name="cover" content="cover-image" />
+
+	</opf:metadata>
+
+	<manifest>
+
+		<!-- <item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" /> -->
+		%coverImageManifestEntry
+		<item id="cover" href="Cover.xhtml" media-type="application/xhtml+xml" />
+		<item id="nav" properties="nav" media-type="application/xhtml+xml" href="toc.xhtml" />
+		<item id="ncx" media-type="application/x-dtbncx+xml" href="toc.ncx" />
+		<item id="title" media-type="application/xhtml+xml" href="title.xhtml" />
+		<!-- <item id="copyright" media-type="application/xhtml+xml" href="copyright.xhtml" /> -->
+		%copyrightPageManifestEntry
+		<!-- <item id="chapter1" media-type="application/xhtml+xml" href="chapter1.xhtml" /> -->
+%chapterManifestEntries
+		<item id="css" href="style.css" media-type="text/css" />
+
+	</manifest>
+
+	<spine toc="ncx">
+
+		<itemref idref="cover" linear="no" />
+		<itemref idref="title" linear="yes" />
+		<!-- <itemref idref="copyright" linear="yes" /> -->
+		%copyrightSpineEntry
+		<itemref idref="nav" linear="yes" />
+		<!-- <itemref idref="chapter1" linear="yes" /> -->
+%chapterSpineEntries
+
+	</spine>
+
+	<guide>
+
+		<reference type="cover" title="Cover" href="Cover.xhtml" />
+		<reference type="toc" title="Table of Contents" href="toc.xhtml" />
+		<reference type="text"  title="%title" href="%firstChapterFilename" />
+
+	</guide>
+
+</package>
