@@ -300,7 +300,11 @@ class Driver(object):
 		self.initChaptersTemplateVars()
 
 		# Write out filled-in templates
-		for templateName in ['style.css', 'book.opf', 'Cover.xhtml', 'toc.ncx', 'toc.xhtml']:
+		templates = ['style.css', 'book.opf', 'Cover.xhtml', 'toc.ncx', 'title.xhtml', 'toc.xhtml']
+		if self.includeCopyright:
+			templates.append('copyright.xhtml')
+
+		for templateName in templates:
 
 			try:
 
