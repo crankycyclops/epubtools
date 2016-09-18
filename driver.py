@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import util
 from abc import ABCMeta, abstractmethod
 
 class Driver(object):
@@ -22,7 +23,11 @@ class Driver(object):
 	##########################################################################
 
 	# Constructor
-	def __init__(self, bookTitle = ''):
+	def __init__(self, bookAuthor = '', bookTitle = ''):
+
+		self.bookAuthor = bookAuthor
+		if not self.bookAuthor:
+			util.eprint('\nWarning: Book author is blank\n')
 
 		self.bookTitle = bookTitle
 		if not self.bookTitle:
@@ -30,8 +35,16 @@ class Driver(object):
 
 	##########################################################################
 
-	# Transforms input text into an ePub-friendly XHTML format.
+	# Main point of entry for processing files in an input directory and
+	# transforming them into an ePub.
 	@abstractmethod
-	def transform(self, inputText):
+	def processBook(self, inputDir):
+		pass
+
+	##########################################################################
+
+	# Transforms input text of a chapter into an ePub-friendly XHTML format.
+	@abstractmethod
+	def transformChapter(self, inputText):
 		pass
 

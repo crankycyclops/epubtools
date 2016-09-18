@@ -3,17 +3,23 @@
 import re
 import util, driver
 
-class HTML(driver.Driver):
+class Scrivener(driver.Driver):
 
 	# Constructor
-	def __init__(self, bookTitle = ''):
-		super().__init__(bookTitle)
+	def __init__(self, bookAuthor = '', bookTitle = ''):
+		super().__init__(bookAuthor, bookTitle)
+
+	##########################################################################
+
+	# TODO
+	def processBook(self, inputDir):
+		pass
 
 	##########################################################################
 
 	# Processes a Scrivener HTML-exported chapter, transforming it into
 	# ePub friendly XHTML.
-	def transform(self, inputText):
+	def transformChapter(self, inputText):
 
 		# Replace doctype
 		inputText = inputText.replace(

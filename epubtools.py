@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import util, drivers.scrivener
+import util, drivers
 
 ###############################################################################
 
@@ -26,8 +26,8 @@ except:
 	util.eprint("\nCould not open " + inputFilename + " for reading.\n")
 	sys.exit(2)
 
-driver = drivers.scrivener.HTML(bookTitle)
-inputText = driver.transform(inputText)
+driver = drivers.Scrivener('', bookTitle)
+inputText = driver.transformChapter(inputText)
 
 try:
 	outputFile = open(outputFilename, 'w')
