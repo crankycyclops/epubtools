@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import util
+import os
 from abc import ABCMeta, abstractmethod
+
+import util
 
 class Driver(object):
 
@@ -23,22 +25,38 @@ class Driver(object):
 	##########################################################################
 
 	# Constructor
-	def __init__(self, bookAuthor = '', bookTitle = ''):
+	def __init__(self, bookAuthor, bookTitle):
 
 		self.bookAuthor = bookAuthor
 		if not self.bookAuthor:
-			util.eprint('\nWarning: Book author is blank\n')
+			raise Exception('Book author is blank.')
 
 		self.bookTitle = bookTitle
 		if not self.bookTitle:
-			util.eprint('\nWarning: Book title is blank\n')
+			raise Exception('Book title is blank.')
+
+	##########################################################################
+
+	# Opens the input source for reading and throws an exception if opening
+	# the ZIP archive or directory failed.
+	def openInput(self, inputFilename):
+
+		# TODO: support ZIP archives by extracting first to /tmp
+		try:
+			self.inputDir = os.scandir(inputFilename) # Requires Python 3.5+
+
+		except FileNotFoundError:
+			raise Exception("Input directory '" + inputFilename + "' not found.")
+
+		except:
+			raise Exception("An error occurred while trying to open '" + inputFilename + ".'")
 
 	##########################################################################
 
 	# Main point of entry for processing files in an input directory and
 	# transforming them into an ePub.
 	@abstractmethod
-	def processBook(self, inputDir):
+	def processBook(self, outputFilename):
 		pass
 
 	##########################################################################
