@@ -27,7 +27,11 @@ class Driver(object):
 	##########################################################################
 
 	# Constructor
-	def __init__(self, bookAuthor, bookTitle, copyrightYear, tmpLocation = '/tmp'):
+	def __init__(self, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation):
+
+		self.bookPublisher = bookPublisher
+		if not self.bookPublisher:
+			raise Exception('Book publisher is blank.')
 
 		self.bookAuthor = bookAuthor
 		if not self.bookAuthor:

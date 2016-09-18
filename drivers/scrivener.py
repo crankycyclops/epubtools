@@ -6,8 +6,8 @@ import util, driver
 class Scrivener(driver.Driver):
 
 	# Constructor
-	def __init__(self, bookAuthor, bookTitle, copyrightYear):
-		super().__init__(bookAuthor, bookTitle, copyrightYear)
+	def __init__(self, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation = '/tmp'):
+		super().__init__(bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation)
 
 	##########################################################################
 
