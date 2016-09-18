@@ -13,7 +13,7 @@
 		<meta refines="#creator-1" property="file-as">%authorLastfirst</meta>
 		<meta refines="#creator-1" property="role" scheme="marc:relators">aut</meta>
 
-		<!-- Example: 2015-06-30 -->
+		<!-- Example date: 2015-06-30 -->
 		<dc:date>%pubdate</dc:date>
 		<meta property="dcterms:modified">%pubdateT00:00:00Z</meta>
 
@@ -27,15 +27,12 @@
 
 	<manifest>
 
-		<!-- <item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" /> -->
 		%coverImageManifestEntry
 		<item id="cover" href="Cover.xhtml" media-type="application/xhtml+xml" />
 		<item id="nav" properties="nav" media-type="application/xhtml+xml" href="toc.xhtml" />
 		<item id="ncx" media-type="application/x-dtbncx+xml" href="toc.ncx" />
 		<item id="title" media-type="application/xhtml+xml" href="title.xhtml" />
-		<!-- <item id="copyright" media-type="application/xhtml+xml" href="copyright.xhtml" /> -->
 		%copyrightPageManifestEntry
-		<!-- <item id="chapter1" media-type="application/xhtml+xml" href="chapter1.xhtml" /> -->
 %chapterManifestEntries
 		<item id="css" href="style.css" media-type="text/css" />
 
@@ -45,10 +42,8 @@
 
 		<itemref idref="cover" linear="no" />
 		<itemref idref="title" linear="yes" />
-		<!-- <itemref idref="copyright" linear="yes" /> -->
 		%copyrightSpineEntry
 		<itemref idref="nav" linear="yes" />
-		<!-- <itemref idref="chapter1" linear="yes" /> -->
 %chapterSpineEntries
 
 	</spine>

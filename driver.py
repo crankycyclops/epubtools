@@ -29,52 +29,6 @@ class Driver(object):
 
 	##########################################################################
 
-	# Template variables used to fill in various data fields in the ePub's files.
-	def initTemplateVars(self):
-
-		invalidAlphaNumRegex = re.compile('[^a-zA-Z0-9]')
-
-		authorSlug = invalidAlphaNumRegex.sub('', self.bookAuthor.lower())
-		titleSlug = invalidAlphaNumRegex.sub('', self.bookTitle.lower())
-
-		# Variables to implement after processing chapters:
-		# %firstChapterFilename, %chapterManifestEntries, %chapterSpineEntries, %chapterTocEntries, %navmap
-		self.templateVars = {
-			'%uid': 'epub.' + titleSlug + '.' + authorSlug + '.' + self.uid,
-			'%title': self.bookTitle,
-			'%author': self.bookAuthor,
-			'%authorLastfirst': self.bookAuthor, #TODO: split on first whitespace and add comma
-			'%publisher': self.bookPublisher,
-			'%lang': self.bookLang,
-			'%pubdate': self.pubDate,
-			'%copyrightyear': self.copyrightYear,
-			'%coverImageManifestEntry': '<item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" />', 
-		};
-
-		# We may or may not want to include a separate automagically generated copyright page.
-		if self.includeCopyright:
-			self.templateVars['%copyrightPageManifestEntry'] = '<item id="copyright" media-type="application/xhtml+xml" href="copyright.xhtml" />';
-			self.templateVars['%copyrightSpineEntry'] = '<itemref idref="copyright" linear="yes" />';
-			self.templateVars['%copyrightTocEntry'] = '<li><a href="copyright.xhtml">Copyright Notice</a></li>';
-
-		else:
-			self.templateVars['%copyrightPageManifestEntry'] = '';
-			self.templatevars['%copyrightSpineEntry'] = '';
-			self.templateVars['%copyrightTocEntry'] = '';
-
-	##########################################################################
-
-	# Takes as input a template and spits out a fully reconstituted file using
-	# the variables defined above.
-	def hydrate(self, template):
-
-		for var in self.templateVars.keys():
-			template = template.replace(var, self.templateVars[var])
-
-		return template
-
-	##########################################################################
-
 	# Constructor
 	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate, copyrightYear, includeCopyright, tmpLocation):
 
@@ -122,6 +76,74 @@ class Driver(object):
 
 		# Setup template variables
 		self.initTemplateVars()
+
+	##########################################################################
+
+	# Template variables used to fill in various data fields in the ePub's files.
+	def initTemplateVars(self):
+
+		invalidAlphaNumRegex = re.compile('[^a-zA-Z0-9]')
+
+		authorSlug = invalidAlphaNumRegex.sub('', self.bookAuthor.lower())
+		titleSlug = invalidAlphaNumRegex.sub('', self.bookTitle.lower())
+
+		# Variables to implement after processing chapters (in self.initChaptersTemplateVars):
+		# %firstChapterFilename, %chapterManifestEntries, %chapterSpineEntries, %chapterTocEntries, %navmap
+		self.templateVars = {
+			'%uid': 'epub.' + titleSlug + '.' + authorSlug + '.' + self.uid,
+			'%title': self.bookTitle,
+			'%author': self.bookAuthor,
+			'%authorLastfirst': self.bookAuthor, #TODO: split on first whitespace and add comma
+			'%publisher': self.bookPublisher,
+			'%lang': self.bookLang,
+			'%pubdate': self.pubDate,
+			'%copyrightyear': self.copyrightYear,
+			'%coverImageManifestEntry': '<item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" />', 
+		};
+
+		# We may or may not want to include a separate automagically generated copyright page.
+		if self.includeCopyright:
+			self.templateVars['%copyrightPageManifestEntry'] = '<item id="copyright" media-type="application/xhtml+xml" href="copyright.xhtml" />';
+			self.templateVars['%copyrightSpineEntry'] = '<itemref idref="copyright" linear="yes" />';
+			self.templateVars['%copyrightTocEntry'] = '<li><a href="copyright.xhtml">Copyright Notice</a></li>';
+
+		else:
+			self.templateVars['%copyrightPageManifestEntry'] = '';
+			self.templatevars['%copyrightSpineEntry'] = '';
+			self.templateVars['%copyrightTocEntry'] = '';
+
+	##########################################################################
+
+	# Similiar to initTemplateVars, except that these variables depend on the
+	# chapters having been processed first, which means we can't call this
+	# in the constructor like we can in the other.
+	def initChaptersTemplateVars(self):
+
+		chapterManifestEntries = '';
+		chapterSpineEntries = '';
+		chapterTocEntries = '';
+		navmap = '';
+
+		for chapter in self.chapterLog:
+
+			chapterId = 'ch' + chapter['chapterSlug']
+			chapterFilename = chapter['chapterSlug'] + '.xhtml'
+			chapterManifestEntries = chapterManifestEntries + '\t\t<item id="' + chapterId + '" media-type="application/xhtml+xml" href="' + chapterFilename + '" />\n'
+			chapterSpineEntries = chapterSpineEntries + '\t\t<itemref idref="' + chapterId + '" linear="yes" />\n'
+			chapterTocEntries = chapterTocEntries + '<li><a href="' + chapterFilename + '">' + chapter['chapter'] + '</a></li>'
+
+		self.templateVars['%firstChapterFilename'] = self.chapterLog[0]['chapterSlug'] + '.xhtml'
+
+	##########################################################################
+
+	# Takes as input a template and spits out a fully reconstituted file using
+	# the variables defined above.
+	def hydrate(self, template):
+
+		for var in self.templateVars.keys():
+			template = template.replace(var, self.templateVars[var])
+
+		return template
 
 	##########################################################################
 
@@ -249,6 +271,7 @@ class Driver(object):
 
 		# Process chapters
 		self.processChaptersDir(self.inputDir)
+		self.initChaptersTemplateVars()
 
 	##########################################################################
 
