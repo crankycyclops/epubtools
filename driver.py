@@ -148,7 +148,7 @@ class Driver(object):
 			chapterFilename = chapter['chapterSlug'] + '.xhtml'
 			chapterManifestEntries = chapterManifestEntries + '\t\t<item id="' + chapterId + '" media-type="application/xhtml+xml" href="' + chapterFilename + '" />\n'
 			chapterSpineEntries = chapterSpineEntries + '\t\t<itemref idref="' + chapterId + '" linear="yes" />\n'
-			chapterTocEntries = chapterTocEntries + '<li><a href="' + chapterFilename + '">' + chapter['chapter'] + '</a></li>'
+			chapterTocEntries = chapterTocEntries + '\t\t\t\t\t<li><a href="' + chapterFilename + '">' + chapter['chapter'] + '</a></li>\n'
 			navmap = (
 				navmap + '\n\t\t<navPoint id="ch' + chapter['chapterSlug'] +
 				'" playOrder="' + str(playOrder) + '">\n' +
@@ -160,6 +160,7 @@ class Driver(object):
 		self.templateVars['%chapterManifestEntries'] = chapterManifestEntries
 		self.templateVars['%chapterSpineEntries'] = chapterSpineEntries
 		self.templateVars['%chapterTocEntries'] = chapterTocEntries
+		self.templateVars['%navmap'] = navmap
 		self.templateVars['%firstChapterFilename'] = self.chapterLog[0]['chapterSlug'] + '.xhtml'
 
 	##########################################################################
@@ -284,7 +285,7 @@ class Driver(object):
 
 
 		# Write out filled-in templates
-		for templateName in ['style.css', 'book.opf']:
+		for templateName in ['style.css', 'book.opf', 'Cover.xhtml', 'toc.ncx', 'toc.xhtml']:
 
 			try:
 
