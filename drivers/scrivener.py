@@ -6,8 +6,8 @@ import util, driver
 class Scrivener(driver.Driver):
 
 	# Constructor
-	def __init__(self, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation = '/tmp'):
-		super().__init__(bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation)
+	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation = '/tmp'):
+		super().__init__(bookLang, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation)
 
 	##########################################################################
 
@@ -114,5 +114,9 @@ class Scrivener(driver.Driver):
 		# See comment about [span inside spanTagMatch while loop
 		inputText = inputText.replace('[span', '<span')
 
-		return {'chapter': chapterHeading, 'text': inputText}
+		return {
+			'chapter': chapterHeading,
+			'chapterSlug': invalidIdCharsRegex.sub('', chapterHeading),
+			'text': inputText
+		}
 

@@ -24,10 +24,17 @@ class Driver(object):
 
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
 
+	# List of chapters processed. Used to create the manifest.
+	chapterLog = []
+
 	##########################################################################
 
 	# Constructor
-	def __init__(self, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation):
+	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation):
+
+		self.bookLang = bookLang
+		if not self.bookLang:
+			raise Exception('Book language is blank. (Example: "en-US")')
 
 		self.bookPublisher = bookPublisher
 		if not self.bookPublisher:
@@ -51,7 +58,7 @@ class Driver(object):
 		# Generate a unique ID that can be used in /tmp to avoid collisions
 		# during concurrently running instances. Also used in the creation
 		# of the book's UID.
-		self.uid = str(binascii.hexlify(os.urandom(16)))
+		self.uid = str(binascii.hexlify(os.urandom(16))).replace("'", '')[1:]
 		self.tmpOutputDir = self.tmpLocation + '/' + self.uid
 
 	##########################################################################
@@ -87,8 +94,12 @@ class Driver(object):
 
 		inputText = open(filename, 'r').read()
 		chapterXHTML = self.transformChapter(inputText)
-		chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapter'] + ('xhtml' if '.' == chapterXHTML['chapter'][-1:] else '.xhtml')
+		chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapterSlug'] + '.xhtml'
 		open(chapterFilename, 'w').write(chapterXHTML['text'])
+		self.chapterLog.append({
+			'chapter': chapterXHTML['chapter'],
+			'chapterSlug': chapterXHTML['chapterSlug']
+		})
 
 	##########################################################################
 
