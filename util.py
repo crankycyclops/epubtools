@@ -20,7 +20,7 @@ def natural_sort(l):
 # zip -0X <zipfile> mimetype
 # zip -r9 <zipfile> OEBPS META-INF
 # Modified from code found here: http://sw32.com/use-python-to-generate-epub-standard-zip-file/
-def zipdirs(paths, zipFilename, compressFile = True):
+def zipdirs(paths, zipFilename, baseDir, compressFile = True):
 
 	# Zips an entire directory
 	def zipdir(path, zipf, compressFile = True):
@@ -30,25 +30,32 @@ def zipdirs(paths, zipFilename, compressFile = True):
 			for file in files:
 
 				path = os.path.join(root, file)
+				relativePath = path.replace(baseDir, '')
 
 				if compressFile:
-					zipf.write(path, compress_type = zipfile.ZIP_DEFLATED)
+					zipf.write(path, relativePath, compress_type = zipfile.ZIP_DEFLATED)
 				else:
-					zipf.write(path, compress_type = zipfile.ZIP_STORED)
+					zipf.write(path, relativePath, compress_type = zipfile.ZIP_STORED)
 
 	##########################################################################
 
 	# Zips an individual file
 	def zipafile(path, zipf, compressFile = True):
 
+		relativePath = path.replace(baseDir, '')
+
 		if compressFile:
-			zipf.write(path, compress_type = zipfile.ZIP_DEFLATED)
+			zipf.write(path, relativePath, compress_type = zipfile.ZIP_DEFLATED)
 		else:
-			zipf.write(path, compress_type = zipfile.ZIP_STORED)
+			zipf.write(path, relativePath, compress_type = zipfile.ZIP_STORED)
 
 	##########################################################################
 
-	zipf = zipfile.ZipFile(zipFilename, 'w')
+	# Make sure we don't overwrite an existing ZIP archive...
+	if os.path.isfile(zipFilename):
+		zipf = zipfile.ZipFile(zipFilename, 'a')
+	else:
+		zipf = zipfile.ZipFile(zipFilename, 'w')
 
 	# We were only given one file or directory to add
 	if type(paths) is str:

@@ -8,8 +8,8 @@ import drivers.scrivener
 ###############################################################################
 
 # Using print as a function requires Python 3
-if len(sys.argv) < 9 or len(sys.argv) > 10:
-	util.eprint("\nUsage: " + sys.argv[0] + " <input source: zip or dir> <output epub file> <book title> <author> <copyright year> <0 = no copyright page, 1 = include copyright page> <lang> <publication date: YYYY-MM-DD> [publisher name (author name used if blank)]\n")
+if len(sys.argv) < 10 or len(sys.argv) > 11:
+	util.eprint("\nUsage: " + sys.argv[0] + " <input source: zip or dir> <output epub file> <book title> <author> <copyright year> <0 = no copyright page, 1 = include copyright page> <lang> <publication date: YYYY-MM-DD> <path to cover image> [publisher name (author name used if blank)]\n")
 	sys.exit(1)
 
 inputFilename = sys.argv[1]
@@ -25,6 +25,7 @@ else:
 
 lang = sys.argv[7] # Example: "en-US"
 pubDate = sys.argv[8] #Valid value: YYYY-MM-DD
+coverPath = sys.argv[9]
 
 if 10 == len(sys.argv):
 	publisher = sys.argv[9]
@@ -33,7 +34,8 @@ else:
 
 # TODO: for now, we're just assuming Scrivener html export input format
 try:
-	driver = drivers.Scrivener(lang, publisher, author, title, pubDate, copyrightYear, includeCopyright)
+	driver = drivers.Scrivener(lang, publisher, author, title, pubDate,
+		copyrightYear, includeCopyright, coverPath)
 except Exception as error:
 	util.eprint('\n' + error.args[0] + '\n')
 	sys.exit(1)

@@ -30,7 +30,8 @@ class Driver(object):
 	##########################################################################
 
 	# Constructor
-	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate, copyrightYear, includeCopyright, tmpLocation):
+	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate,
+	copyrightYear, includeCopyright, coverPath, tmpLocation = '/tmp'):
 
 		self.bookLang = bookLang
 		if not self.bookLang:
@@ -62,6 +63,10 @@ class Driver(object):
 		self.copyrightYear = copyrightYear
 		if not self.copyrightYear:
 			raise Exception('Copyright year is blank.')
+
+		self.coverPath = coverPath
+		if not self.coverPath:
+			raise Exception('Path to cover is required but missing.')
 
 		self.includeCopyright = includeCopyright
 
@@ -244,8 +249,8 @@ class Driver(object):
 			if os.path.isfile(outputFilename):
 				os.remove(outputFilename)
 
-			util.zipdirs(self.tmpOutputDir + '/mimetype', outputFilename, False)
-			util.zipdirs([self.tmpOutputDir + '/META-INF', self.tmpOutputDir + '/OEBPS'], outputFilename)
+			util.zipdirs(self.tmpOutputDir + '/mimetype', outputFilename, self.tmpOutputDir, False)
+			util.zipdirs([self.tmpOutputDir + '/META-INF', self.tmpOutputDir + '/OEBPS'], outputFilename, self.tmpOutputDir)
 
 		except:
 			raise Exception('Failed to write output file ' + outputFilename)
@@ -268,7 +273,6 @@ class Driver(object):
 		except:
 			raise Exception('Failed to create temporary output directory.')
 
-
 		# Write out the book's mimetype
 		try:
 			mimetypeFile = open(self.tmpOutputDir + '/mimetype', 'w')
@@ -277,7 +281,6 @@ class Driver(object):
 
 		except:
 			raise Exception('Failed to write mimetype.')
-
 
 		# Write out XML container that identifies where the book's files are to be found
 		try:
@@ -292,11 +295,9 @@ class Driver(object):
 		except:
 			raise Exception('Failed to read container.xml template.')
 
-
 		# Process chapters
 		self.processChaptersDir(self.inputPath, self.inputDir)
 		self.initChaptersTemplateVars()
-
 
 		# Write out filled-in templates
 		for templateName in ['style.css', 'book.opf', 'Cover.xhtml', 'toc.ncx', 'toc.xhtml']:
@@ -313,6 +314,15 @@ class Driver(object):
 			except:
 				raise Exception('Failed to read ' + templateName + ' template.')
 
+		# Copy the cover (WARNING: should not exceed 1000 pixels in longest
+		# dimension to avoid crashing older e-readers.)
+		try:
+			# TODO: actually do extensive validation of the image before just
+			# blindly copying it over ;)
+			shutil.copyfile(self.coverPath, self.tmpOutputDir + '/OEBPS/Cover.jpg')
+
+		except:
+			raise Exception('Could not copy cover.')
 
 		# Finally, write the ePub file. Phew!
 		self.zipBook(outputFilename)
