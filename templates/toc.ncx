@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+
+     <head>
+		<!-- UID: sluggified title.author fname.author lname.random number  -->
+          <meta content="%uid" name="dtb:uid" />
+          <meta content="1" name="dtb:depth" />
+          <meta content="0" name="dtb:totalPageCount" />
+          <meta content="0" name="dtb:maxPageNumber" />
+     </head>
+
+	<docTitle>
+		<text>%title</text>
+	</docTitle>
+
+	<navMap>
+
+%navmap
+
+		<!--
+		<navPoint id="title" playOrder="1">
+			<navLabel>
+				<text>
+					Title Page
+				</text>
+			</navLabel>
+			<content src="title.xhtml" />
+		</navPoint>
+
+		<navPoint id="copyright" playOrder="2">
+			<navLabel>
+				<text>
+					Copyright Notice
+				</text>
+			</navLabel>
+			<content src="copyright.xhtml" />
+		</navPoint>
+
+		<navPoint id="toc" playOrder="3">
+			<navLabel>
+				<text>
+					Table of Contents
+				</text>
+			</navLabel>
+			<content src="toc.xhtml" />
+		</navPoint>
+
+		<navPoint id="ch1" playOrder="4">
+			<navLabel>
+				<text>
+					Chapter 1
+				</text>
+			</navLabel>
+			<content src="chapter1.xhtml" />
+		</navPoint>
+		-->
+
+	</navMap>
+
+</ncx>

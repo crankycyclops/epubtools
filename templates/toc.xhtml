@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:epub="http://www.idpf.org/2007/ops">
+
+	<head>
+		<meta charset="utf-8" />
+		<title>%title</title>
+		<link rel="stylesheet" href="style.css" type="text/css" />
+	</head>
+
+	<body>
+
+		<section epub:type="toc">
+
+			<header>
+				<h1>Table of Contents</h1>
+			</header>
+
+			<nav epub:type="toc" id="toc">			
+				<ol>
+					<li><a href="title.xhtml">Title Page</a></li>
+					<!-- <li><a href="copyright.xhtml">Copyright Notice</a></li> -->
+					%copyrightTocEntry
+					<!-- <li><a href="chapter1.xhtml">Chapter 1</a></li> -->
+%chapterTocEntries
+				</ol>
+			</nav>
+
+			<!-- Only turn this on if EPUB 3 is strictly required
+			<nav epub:type="landmarks" style="display: none;" hidden="hidden" id="guide">
+				<ol>
+					<li><a epub:type="frontmatter" href="title.xhtml">frontmatter</a></li>
+					<li><a epub:type="copyright-page" href="copyright.xhtml">copyright-page</a></li>
+					<li><a epub:type="toc" href="#toc">toc</a></li>
+					<li><a epub:type="bodymatter" href="chapter1.xhtml">bodymatter</a></li>
+					<li><a epub:type="backmatter" href="author.xhtml">backmatter</a></li>
+				</ol>
+			</nav>
+			-->
+
+		</section>
+
+	</body>
+
+</html>
