@@ -37,6 +37,8 @@ class Driver(object):
 		authorSlug = invalidAlphaNumRegex.sub('', self.bookAuthor.lower())
 		titleSlug = invalidAlphaNumRegex.sub('', self.bookTitle.lower())
 
+		# Variables to implement after processing chapters:
+		# %firstChapterFilename, %chapterManifestEntries, %chapterSpineEntries, %chapterTocEntries, %navmap
 		self.templateVars = {
 			'%uid': 'epub.' + titleSlug + '.' + authorSlug + '.' + self.uid,
 			'%title': self.bookTitle,
@@ -45,7 +47,31 @@ class Driver(object):
 			'%publisher': self.bookPublisher,
 			'%lang': self.bookLang,
 			'%pubdate': self.pubDate,
+			'%copyrightyear': self.copyrightYear,
+			'%coverImageManifestEntry': '<item id="cover-image" href="Cover.jpg" media-type="image/jpeg" properties="cover-image" />', 
 		};
+
+		# We may or may not want to include a separate automagically generated copyright page.
+		if self.includeCopyright:
+			self.templateVars['%copyrightPageManifestEntry'] = '<item id="copyright" media-type="application/xhtml+xml" href="copyright.xhtml" />';
+			self.templateVars['%copyrightSpineEntry'] = '<itemref idref="copyright" linear="yes" />';
+			self.templateVars['%copyrightTocEntry'] = '<li><a href="copyright.xhtml">Copyright Notice</a></li>';
+
+		else:
+			self.templateVars['%copyrightPageManifestEntry'] = '';
+			self.templatevars['%copyrightSpineEntry'] = '';
+			self.templateVars['%copyrightTocEntry'] = '';
+
+	##########################################################################
+
+	# Takes as input a template and spits out a fully reconstituted file using
+	# the variables defined above.
+	def hydrate(self, template):
+
+		for var in self.templateVars.keys():
+			template = template.replace(var, self.templateVars[var])
+
+		return template
 
 	##########################################################################
 
@@ -82,6 +108,8 @@ class Driver(object):
 		self.copyrightYear = copyrightYear
 		if not self.copyrightYear:
 			raise Exception('Copyright year is blank.')
+
+		self.includeCopyright = includeCopyright
 
 		# Where we write temporary files
 		self.tmpLocation = tmpLocation
@@ -194,7 +222,7 @@ class Driver(object):
 		# Write out XML container that identifies where the book's files are to be found
 		try:
 
-			containerTemplate = open(self.scriptPath + '/templates/container.xml', 'r').read()
+			containerTemplate = self.hydrate(open(self.scriptPath + '/templates/container.xml', 'r').read())
 
 			try:
 				open(self.tmpOutputDir + '/META-INF/container.xml', 'w').write(containerTemplate)
@@ -208,7 +236,7 @@ class Driver(object):
 		# Write out stylesheet
 		try:
 
-			cssTemplate = open(self.scriptPath + '/templates/style.css', 'r').read()
+			cssTemplate = self.hydrate(open(self.scriptPath + '/templates/style.css', 'r').read())
 
 			try:
 				open(self.tmpOutputDir + '/OEBPS/style.css', 'w').write(cssTemplate)
