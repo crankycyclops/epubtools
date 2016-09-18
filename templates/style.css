@@ -1,0 +1,36 @@
+p {
+	text-indent: 1.2em;
+	line-height: 150%;
+	margin: 0;
+}
+
+.center {
+	text-align: center;
+}
+
+/* Title Page */
+#title {
+	min-height: 10em;
+	vertical-align: middle;
+}
+
+div.title {
+	font-size: 4em;
+	text-align: center;
+}
+
+div.author {
+	font-size: 2em;
+	text-align: center;
+}
+
+div.titlecopyright {
+	font-size: 0.8em;
+	text-align: center;
+}
+
+/* Copyright Notice */
+div.copyrightpage {
+	font-size: 0.8em;
+}
+

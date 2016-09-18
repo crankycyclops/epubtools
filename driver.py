@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+import os, binascii
 from abc import ABCMeta, abstractmethod
 
 import util
@@ -22,10 +22,12 @@ class Driver(object):
 		"®": "&#174;"   #reg
 	}
 
+	scriptPath = os.path.dirname(os.path.realpath(__file__))
+
 	##########################################################################
 
 	# Constructor
-	def __init__(self, bookAuthor, bookTitle, copyrightYear):
+	def __init__(self, bookAuthor, bookTitle, copyrightYear, tmpLocation = '/tmp'):
 
 		self.bookAuthor = bookAuthor
 		if not self.bookAuthor:
@@ -38,6 +40,15 @@ class Driver(object):
 		self.copyrightYear = copyrightYear
 		if not self.copyrightYear:
 			raise Exception('Copyright year is blank.')
+
+		# Where we write temporary files
+		self.tmpLocation = tmpLocation
+
+		# Generate a unique ID that can be used in /tmp to avoid collisions
+		# during concurrently running instances. Also used in the creation
+		# of the book's UID.
+		self.uid = str(binascii.hexlify(os.urandom(16)))
+		self.tmpOutputDir = self.tmpLocation + '/' + self.uid
 
 	##########################################################################
 
@@ -66,12 +77,41 @@ class Driver(object):
 
 	##########################################################################
 
-	# Called by processBook whenever it encounters another directory inside
-	# the parent.
-	def processBookDir(self, dirname):
+	# Frontend for transformation of a chapter into an ePub-friendly format.
+	# Calls self.transform. Caller must be prepared to catch exceptions.
+	def processChapter(self, filename):
 
-		# TODO: just skipping for now
-		pass
+		inputText = open(filename, 'r').read()
+		chapterXHTML = self.transformChapter(inputText)
+		chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapter'] + ('xhtml' if '.' == chapterXHTML['chapter'][-1:] else '.xhtml')
+		open(chapterFilename, 'w').write(chapterXHTML['text'])
+
+	##########################################################################
+
+	# Called by processBook whenever it encounters another directory inside
+	# the parent. Recursively enters subdirectories.
+	def processChaptersDir(self, dirIterator):
+
+		# Process each chapter individually
+		for dirEntry in dirIterator:
+
+			if (dirEntry.name == '.' or dirEntry.name == '..'):
+				continue
+
+			# Chapters might be organized into further subdirectories; don't miss them!
+			elif (dirEntry.is_dir()):
+				self.processChaptersDir(os.scandir(dirEntry.path))
+
+			else:
+
+				try:
+					self.processChapter(dirEntry.path)
+
+				except IOError:
+					raise Exception('Failed to write one or more chapters.')
+
+				except:
+					raise Exception('Failed to process one or more chapters.')
 
 	##########################################################################
 
@@ -82,28 +122,56 @@ class Driver(object):
 	# version.
 	def processBook(self, outputFilename):
 
-		# Process each chapter individually
-		for dirEntry in self.inputDir:
+		# Create the book's directory structure
+		try:
+			os.mkdir(self.tmpOutputDir)
+			os.mkdir(self.tmpOutputDir + '/OEBPS')
+			os.mkdir(self.tmpOutputDir + '/META-INF')
 
-			if (dirEntry.name == '.' or dirEntry.name == '..'):
-				continue
+		except:
+			raise Exception('Failed to create temporary output directory.')
 
-			# Chapters might be organized into further subdirectories; don't miss them!
-			elif (dirEntry.is_dir()):
-				self.processBookDir(dirEntry.path)
 
-			else:
+		# Write out the book's mimetype
+		try:
+			mimetypeFile = open(self.tmpOutputDir + '/mimetype', 'w')
+			mimetypeFile.write('application/epub+zip')
+			mimetypeFile.close()
 
-				try:
+		except:
+			raise Exception('Failed to write mimetype.')
 
-					inputFile = open(dirEntry.path, 'r')
-					inputText = inputFile.read()
-					chapterXHTML = self.transformChapter(inputText)
 
-					# TODO: write out result
+		# Write out XML container that identifies where the book's files are to be found
+		try:
 
-				except:
-					raise Exception('Could not process one or more chapters.')
+			containerTemplate = open(self.scriptPath + '/templates/container.xml', 'r').read()
+
+			try:
+				open(self.tmpOutputDir + '/META-INF/container.xml', 'w').write(containerTemplate)
+			except:
+				raise Exception('Failed to write container.xml.')
+
+		except:
+			raise Exception('Failed to read container.xml template.')
+
+
+		# Write out stylesheet
+		try:
+
+			cssTemplate = open(self.scriptPath + '/templates/style.css', 'r').read()
+
+			try:
+				open(self.tmpOutputDir + '/OEBPS/style.css', 'w').write(cssTemplate)
+			except:
+				raise Exception('Failed to write style.css.')
+
+		except:
+			raise Exception('Failed to read style.css template.')
+
+
+		# Process chapters
+		self.processChaptersDir(self.inputDir)
 
 	##########################################################################
 

@@ -27,5 +27,6 @@ try:
 	driver.cleanup()
 
 except Exception as error:
+	driver.cleanup()
 	util.eprint('\n' + error.args[0] + '\n')
 

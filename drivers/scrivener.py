@@ -114,5 +114,5 @@ class Scrivener(driver.Driver):
 		# See comment about [span inside spanTagMatch while loop
 		inputText = inputText.replace('[span', '<span')
 
-		return inputText
+		return {'chapter': chapterHeading, 'text': inputText}
 
