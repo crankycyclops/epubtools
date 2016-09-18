@@ -32,14 +32,20 @@ else:
 	publisher = author
 
 # TODO: for now, we're just assuming Scrivener html export input format
-driver = drivers.Scrivener(lang, publisher, author, title, pubDate, copyrightYear, includeCopyright)
+try:
+	driver = drivers.Scrivener(lang, publisher, author, title, pubDate, copyrightYear, includeCopyright)
+except Exception as error:
+	util.eprint('\n' + error.args[0] + '\n')
+	sys.exit(1)
 
 try:
 	driver.openInput(inputFilename)
 	driver.processBook(outputFilename)
 	driver.cleanup()
+	sys.exit(0)
 
 except Exception as error:
 	driver.cleanup()
 	util.eprint('\n' + error.args[0] + '\n')
+	sys.exit(1)
 
