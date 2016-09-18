@@ -27,8 +27,8 @@ lang = sys.argv[7] # Example: "en-US"
 pubDate = sys.argv[8] #Valid value: YYYY-MM-DD
 coverPath = sys.argv[9]
 
-if 10 == len(sys.argv):
-	publisher = sys.argv[9]
+if 11 == len(sys.argv):
+	publisher = sys.argv[10]
 else:
 	publisher = author
 
