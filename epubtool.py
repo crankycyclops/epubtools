@@ -8,8 +8,8 @@ import drivers.scrivener
 ###############################################################################
 
 # Using print as a function requires Python 3
-if len(sys.argv) < 7 or len(sys.argv) > 8:
-	util.eprint("\nUsage: " + sys.argv[0] + " <input source: zip or dir> <output epub file> <book title> <author> <copyright year> <0 = no copyright page, 1 = include copyright page> [publisher name (author name used if blank)]\n")
+if len(sys.argv) < 9 or len(sys.argv) > 10:
+	util.eprint("\nUsage: " + sys.argv[0] + " <input source: zip or dir> <output epub file> <book title> <author> <copyright year> <0 = no copyright page, 1 = include copyright page> <lang> <publication date: YYYY-MM-DD> [publisher name (author name used if blank)]\n")
 	sys.exit(1)
 
 inputFilename = sys.argv[1]
@@ -23,13 +23,16 @@ if '1' == sys.argv[6]:
 else:
 	includeCopyright = False
 
-if 8 == len(sys.argv):
-	publisher = sys.argv[7]
+lang = sys.argv[7] # Example: "en-US"
+pubDate = sys.argv[8] #Valid value: YYYY-MM-DD
+
+if 10 == len(sys.argv):
+	publisher = sys.argv[9]
 else:
 	publisher = author
 
 # TODO: for now, we're just assuming Scrivener html export input format
-driver = drivers.Scrivener(publisher, author, title, copyrightYear, includeCopyright)
+driver = drivers.Scrivener(lang, publisher, author, title, pubDate, copyrightYear, includeCopyright)
 
 try:
 	driver.openInput(inputFilename)

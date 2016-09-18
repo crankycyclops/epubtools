@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, binascii
+import re, os, binascii
 from abc import ABCMeta, abstractmethod
 
 import util
@@ -29,8 +29,28 @@ class Driver(object):
 
 	##########################################################################
 
+	# Template variables used to fill in various data fields in the ePub's files.
+	def initTemplateVars(self):
+
+		invalidAlphaNumRegex = re.compile('[^a-zA-Z0-9]')
+
+		authorSlug = invalidAlphaNumRegex.sub('', self.bookAuthor.lower())
+		titleSlug = invalidAlphaNumRegex.sub('', self.bookTitle.lower())
+
+		self.templateVars = {
+			'%uid': 'epub.' + titleSlug + '.' + authorSlug + '.' + self.uid,
+			'%title': self.bookTitle,
+			'%author': self.bookAuthor,
+			'%authorLastfirst': self.bookAuthor, #TODO: split on first whitespace and add comma
+			'%publisher': self.bookPublisher,
+			'%lang': self.bookLang,
+			'%pubdate': self.pubDate,
+		};
+
+	##########################################################################
+
 	# Constructor
-	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, copyrightYear, includeCopyright, tmpLocation):
+	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate, copyrightYear, includeCopyright, tmpLocation):
 
 		self.bookLang = bookLang
 		if not self.bookLang:
@@ -48,6 +68,17 @@ class Driver(object):
 		if not self.bookTitle:
 			raise Exception('Book title is blank.')
 
+		self.pubDate = pubDate
+		if not self.pubDate:
+			raise Exception('Publication date is blank. (Format: YYYY-MM-DD)')
+
+		# Quick sanity check on the publication date (doesn't catch all errors, so user beware!)
+		validPubDateRegex = re.compile('(\d{4})-(\d{2})-(\d{2})')
+		pubDateValidator = validPubDateRegex.search(self.pubDate)
+
+		if not pubDateValidator or int(pubDateValidator.group(2)) < 1 or int(pubDateValidator.group(2)) > 12 or int(pubDateValidator.group(3)) < 1 or int(pubDateValidator.group(3)) > 31:
+			raise Exception('Invalid publication date. Must be YYYY-MM-DD.')
+
 		self.copyrightYear = copyrightYear
 		if not self.copyrightYear:
 			raise Exception('Copyright year is blank.')
@@ -60,6 +91,9 @@ class Driver(object):
 		# of the book's UID.
 		self.uid = str(binascii.hexlify(os.urandom(16))).replace("'", '')[1:]
 		self.tmpOutputDir = self.tmpLocation + '/' + self.uid
+
+		# Setup template variables
+		self.initTemplateVars()
 
 	##########################################################################
 
