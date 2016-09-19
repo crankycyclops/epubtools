@@ -5,6 +5,21 @@ import util, driver
 
 class Abiword(driver.Driver):
 
+	specialChars = {
+		"'":        "&#8217;", #rsquo
+		"{`}":      "&#8216;", #lsquo
+		"''":       "&#8221;", #rdquo
+		"{``}":     "&#8220;", #ldquo
+		"\ldots{}": "&#8230;", #hellip
+		"---":      "&#8212;", #mdash
+		"--":       "&#8211;", #ndash
+		"™":        "&#8482;", #trade
+		"©":        "&#169;",  #copy
+		"®":        "&#174;"   #reg
+	}
+
+	##########################################################################
+
 	# Constructor
 	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate,
 	copyrightYear, includeCopyright, coverPath, tmpLocation = '/tmp'):
@@ -48,10 +63,49 @@ class Abiword(driver.Driver):
 	# .docx, .rtf, etc.) and transforms it into ePub friendly XHTML.
 	def transformChapter(self, inputText):
 
-		# TODO
+		inParagraph = False
+		nextParagraph = ''
+		paragraphs = []
+
+		# First, extract out each paragraph
+		lines = inputText.split('\n')
+		for i in range(0, len(lines)):
+
+			if inParagraph:
+				if '\\end{flushleft}' == lines[i] or '\\end{flushright}' == lines[i] or '\\end{center}' == lines[i]:
+					paragraphs.append('<p>' + nextParagraph + '</p>')
+					nextParagraph = ''
+					inParagraph = False
+				else:
+					nextParagraph += lines[i]
+
+			else:
+				if '\\begin{flushleft}' == lines[i] or '\\begin{flushright}' == lines[i] or '\\begin{center}' == lines[i]:
+					inParagraph = True
+
+		emphRegex = re.compile('\\\\emph{(.*?)}')
+		boldRegex = re.compile('\\\\textbf{(.*?)}')
+		underlineRegex = re.compile('\\\\uline{(.*?)}')
+
+		for i in range(0, len(paragraphs)):
+
+			# Next, replace latex constructs inside each paragraph with XHTML equivalents
+			paragraphs[i] = emphRegex.sub(r'<em>\1</em>', paragraphs[i])
+			paragraphs[i] = boldRegex.sub(r'<strong>\1</strong>', paragraphs[i])
+			paragraphs[i] = underlineRegex.sub(r'<span style="font-decoration: underline;">\1</span>', paragraphs[i])
+
+			# Now, replace common Latex entities with XHTML entities (this won't catch everything)
+			for char in self.specialChars.keys():
+				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
+
+			print(paragraphs[i])
+			sys.exit(1)
+
+		invalidSlugCharsRegex = re.compile('[^a-zA-Z0-9]')
+
 		return {
-			'chapter': '',
-			'chapterSlug': '',
+			'chapter': paragraphs[0],
+			'chapterSlug': invalidSlugCharsRegex.sub('', paragraphs[0]),
 			'text': inputText
 		}
 
@@ -61,13 +115,31 @@ class Abiword(driver.Driver):
 	# it as a latex file that we can parse much more easily.
 	def processChaptersList(self, inputPath, chapters):
 
+		latexFilePath = self.latexPath + '/input.tex'
+
 		try:
-			output = subprocess.check_output(['abiword', self.inputPath, '--to=latex', '-o', self.latexPath + '/input.tex'])
+
+			output = subprocess.check_output(['abiword', self.inputPath, '--to=latex', '-o', latexFilePath])
+
 			if output:
 				raise Exception()
+
+			texLines = open(latexFilePath, 'r').readlines()
 
 		except:
 			raise Exception('Failed to convert input document. This is a bug.')
 
-		# TODO
-		sys.exit(1)
+		chapterText = '';
+
+		for i in range(0, len(texLines)):
+
+			# Chapter break; process the next chapter
+			if '\\newpage\n' == texLines[i]:
+				self.processChapter(chapterText)
+				chapterText = ''; # Reset inputText for the next chapter
+
+			else:
+				chapterText += texLines[i]
+
+		# Make sure we don't skip over the last chapter ;)
+		self.processChapter(chapterText)
