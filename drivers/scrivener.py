@@ -183,19 +183,19 @@ class Scrivener(driver.Driver):
 
 	# Iterates through a directory containing HTML-exported chapters and
 	# runs processChapter on each. Recursively enters subdirectories.
-	def processChaptersList(self, basePath, chapters):
+	def processChaptersList(self, inputPath, chapters):
 
 		# Process each chapter individually
 		for filename in chapters:
 
 			# Chapters might be organized into further subdirectories; don't miss them!
-			if (os.path.isdir(basePath + '/' + filename)):
-				self.processChaptersList(basePath + '/' + filename, os.listdir(basePath + '/' + filename))
+			if (os.path.isdir(inputPath + '/' + filename)):
+				self.processChaptersList(inputPath + '/' + filename, os.listdir(inputPath + '/' + filename))
 
 			else:
 
 				try:
-					inputText = open(basePath + '/' + filename, 'r').read()
+					inputText = open(inputPath + '/' + filename, 'r').read()
 					self.processChapter(inputText)
 
 				except IOError:
