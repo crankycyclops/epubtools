@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re, os, sys, subprocess
+import re, os, sys, subprocess, shutil
 import util, driver
 
 class Abiword(driver.Driver):
@@ -87,6 +87,15 @@ class Abiword(driver.Driver):
 		boldRegex = re.compile('\\\\textbf{(.*?)}')
 		underlineRegex = re.compile('\\\\uline{(.*?)}')
 
+		invalidSlugCharsRegex = re.compile('[^a-zA-Z0-9]')
+
+		chapterTemplateVars = {
+			'%title': self.bookTitle,
+			'%chapter': '',
+			'%slugChapter': 'ch' + invalidSlugCharsRegex.sub('', paragraphs[0]),
+			'%paragraphs': ''
+		}
+
 		for i in range(0, len(paragraphs)):
 
 			# Next, replace latex constructs inside each paragraph with XHTML equivalents
@@ -98,15 +107,20 @@ class Abiword(driver.Driver):
 			for char in self.specialChars.keys():
 				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
-			print(paragraphs[i])
-			sys.exit(1)
+			# The first paragraph is the title, so don't add it to the body
+			if i != 0:
+				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
 
-		invalidSlugCharsRegex = re.compile('[^a-zA-Z0-9]')
+		chapterTemplateVars['%chapter'] = paragraphs[0]
+
+		chapterTemplate = open(self.scriptPath + '/templates/chapter.xhtml', 'r').read()
+		for var in chapterTemplateVars.keys():
+			chapterTemplate = chapterTemplate.replace(var, chapterTemplateVars[var])
 
 		return {
 			'chapter': paragraphs[0],
 			'chapterSlug': invalidSlugCharsRegex.sub('', paragraphs[0]),
-			'text': inputText
+			'text': chapterTemplate
 		}
 
 	##########################################################################
