@@ -219,6 +219,7 @@ class Driver(object):
 			inputFilename = self.openZipInput(inputFilename)
 
 		try:
+
 			self.inputPath = inputFilename
 			self.inputDir = util.natural_sort(os.listdir(inputFilename))
 
@@ -245,9 +246,8 @@ class Driver(object):
 
 	# Frontend for transformation of a chapter into an ePub-friendly format.
 	# Calls self.transform. Caller must be prepared to catch exceptions.
-	def processChapter(self, filename):
+	def processChapter(self, inputText):
 
-		inputText = open(filename, 'r').read()
 		chapterXHTML = self.transformChapter(inputText)
 		chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapterSlug'] + '.xhtml'
 		open(chapterFilename, 'w').write(chapterXHTML['text'])
@@ -258,21 +258,22 @@ class Driver(object):
 
 	##########################################################################
 
-	# Called by processBook whenever it encounters another directory inside
-	# the parent. Recursively enters subdirectories.
-	def processChaptersDir(self, basePath, dirList):
+	# Iterates through a list of chapters and runs transformChapter on each.
+	# Recursively enters subdirectories.
+	def processChaptersList(self, basePath, chaptersList):
 
 		# Process each chapter individually
-		for filename in dirList:
+		for filename in chaptersList:
 
 			# Chapters might be organized into further subdirectories; don't miss them!
 			if (os.path.isdir(basePath + '/' + filename)):
-				self.processChaptersDir(basePath + '/' + filename, os.listdir(basePath + '/' + filename))
+				self.processChaptersList(basePath + '/' + filename, os.listdir(basePath + '/' + filename))
 
 			else:
 
 				try:
-					self.processChapter(basePath + '/' + filename)
+					inputText = open(basePath + '/' + filename, 'r').read()
+					self.processChapter(inputText)
 
 				except IOError:
 					raise Exception('Failed to write one or more chapters.')
@@ -338,7 +339,7 @@ class Driver(object):
 			raise Exception('Failed to read container.xml template.')
 
 		# Process chapters
-		self.processChaptersDir(self.inputPath, self.inputDir)
+		self.processChaptersList(self.inputPath, self.inputDir)
 		self.initChaptersTemplateVars()
 
 		# Write out filled-in templates
