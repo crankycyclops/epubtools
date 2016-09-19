@@ -9,20 +9,12 @@ class Driver(object):
 
 	__metaclass__ = ABCMeta
 
-	specialChars = {
-		"’": "&#8217;", #rsquo
-		"‘": "&#8216;", #lsquo
-		"”": "&#8221;", #rdquo
-		"“": "&#8220;", #ldquo
-		"…": "&#8230;", #hellip
-		"—": "&#8212;", #mdash
-		"–": "&#8211;", #ndash
-		"™": "&#8482;", #trade
-		"©": "&#169;",  #copy
-		"®": "&#174;"   #reg
-	}
-
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
+
+	# A list of input chapters in need of processing. Each driver is responsible
+	# for implementing this in its own way. Ordinarily this will be set in
+	# self.openDriver().
+	chaptersList = False
 
 	# List of chapters processed. Used to create the manifest.
 	chapterLog = []
@@ -298,7 +290,7 @@ class Driver(object):
 			raise Exception('Failed to read container.xml template.')
 
 		# Process chapters
-		self.processChaptersList(self.inputPath, self.inputDir)
+		self.processChaptersList(self.inputPath, self.chaptersList)
 		self.initChaptersTemplateVars()
 
 		# Write out filled-in templates

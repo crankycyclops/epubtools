@@ -5,6 +5,21 @@ import util, driver
 
 class Scrivener(driver.Driver):
 
+	specialChars = {
+		"’": "&#8217;", #rsquo
+		"‘": "&#8216;", #lsquo
+		"”": "&#8221;", #rdquo
+		"“": "&#8220;", #ldquo
+		"…": "&#8230;", #hellip
+		"—": "&#8212;", #mdash
+		"–": "&#8211;", #ndash
+		"™": "&#8482;", #trade
+		"©": "&#169;",  #copy
+		"®": "&#174;"   #reg
+	}
+
+	##########################################################################
+
 	# Constructor
 	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate,
 	copyrightYear, includeCopyright, coverPath, tmpLocation = '/tmp'):
@@ -49,14 +64,13 @@ class Scrivener(driver.Driver):
 			self.inputPath = self.openZipInput(self.inputPath)
 
 		try:
-			self.inputDir = util.natural_sort(os.listdir(self.inputPath))
+			self.chaptersList = util.natural_sort(os.listdir(self.inputPath))
 
 		except:
 			raise Exception("An error occurred while trying to open '" + self.inputPath + ".'")
 
 	##########################################################################
 
-	# Cleans up the mess left behind after an e-book conversion.	
 	def cleanup(self):
 
 		try:
