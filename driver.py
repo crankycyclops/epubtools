@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import shutil, re, os, binascii
+import shutil, re, os, binascii, zipfile
 from abc import ABCMeta, abstractmethod
 
 import util
@@ -78,6 +78,9 @@ class Driver(object):
 		# of the book's UID.
 		self.uid = str(binascii.hexlify(os.urandom(16))).replace("'", '')[1:]
 		self.tmpOutputDir = self.tmpLocation + '/' + self.uid
+
+		# Where we extract ZIP archives, if a ZIP archive was passed as input
+		self.extractPath = self.tmpOutputDir + '_input'
 
 		# Setup template variables
 		self.initTemplateVars()
@@ -182,11 +185,39 @@ class Driver(object):
 
 	##########################################################################
 
+	# Opens up a ZIP file for input and passes back the path to the extracted
+	# contents.
+	def openZipInput(self, inputFilename):
+
+		try:
+
+			os.mkdir(self.extractPath)
+			archive = zipfile.ZipFile(inputFilename)
+
+			# This should be safe as of Python 2.7.4, which adds path
+			# traversal protection
+			archive.extractall(self.extractPath)
+			return self.extractPath
+
+		except OSError:
+			raise Exception('Error occurred during extraction. This is a bug.')
+
+		except zipfile.BadZipfile:
+			raise Exception('ZIP file is invalid.')
+
+		except:
+			raise Exception('Could not extract ZIP file.')
+
+	##########################################################################
+
 	# Opens the input source for reading and throws an exception if opening
 	# the ZIP archive or directory failed.
 	def openInput(self, inputFilename):
 
-		# TODO: support ZIP archives by extracting first to /tmp
+		# Support for ZIP archives
+		if '.zip' == inputFilename[-4:].lower():
+			inputFilename = self.openZipInput(inputFilename)
+
 		try:
 			self.inputPath = inputFilename
 			self.inputDir = util.natural_sort(os.listdir(inputFilename))
@@ -198,7 +229,17 @@ class Driver(object):
 
 	# Cleans up the mess left behind after an e-book conversion.	
 	def cleanup(self):
-		shutil.rmtree(self.tmpOutputDir)
+
+		try:
+			shutil.rmtree(self.tmpOutputDir)
+			if os.path.exists(self.extractPath):
+				shutil.rmtree(self.extractPath)
+
+		# If this is on the backend of a server, I don't want people to get
+		# error messages about it. But /tmp should be monitored to make sure
+		# it's not filling up because this is silently failing.
+		except:
+			pass
 
 	##########################################################################
 
