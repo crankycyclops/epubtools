@@ -244,45 +244,6 @@ class Driver(object):
 
 	##########################################################################
 
-	# Frontend for transformation of a chapter into an ePub-friendly format.
-	# Calls self.transform. Caller must be prepared to catch exceptions.
-	def processChapter(self, inputText):
-
-		chapterXHTML = self.transformChapter(inputText)
-		chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapterSlug'] + '.xhtml'
-		open(chapterFilename, 'w').write(chapterXHTML['text'])
-		self.chapterLog.append({
-			'chapter': chapterXHTML['chapter'],
-			'chapterSlug': chapterXHTML['chapterSlug']
-		})
-
-	##########################################################################
-
-	# Iterates through a list of chapters and runs transformChapter on each.
-	# Recursively enters subdirectories.
-	def processChaptersList(self, basePath, chaptersList):
-
-		# Process each chapter individually
-		for filename in chaptersList:
-
-			# Chapters might be organized into further subdirectories; don't miss them!
-			if (os.path.isdir(basePath + '/' + filename)):
-				self.processChaptersList(basePath + '/' + filename, os.listdir(basePath + '/' + filename))
-
-			else:
-
-				try:
-					inputText = open(basePath + '/' + filename, 'r').read()
-					self.processChapter(inputText)
-
-				except IOError:
-					raise Exception('Failed to write one or more chapters.')
-
-				except:
-					raise Exception('Failed to process one or more chapters.')
-
-	##########################################################################
-
 	# Creates a specially formatted ZIP file of the book's contents, per the
 	# ePub specifications.
 	def zipBook(self, outputFilename):
@@ -297,6 +258,34 @@ class Driver(object):
 
 		except:
 			raise Exception('Failed to write output file ' + outputFilename)
+
+	##########################################################################
+
+	# Transforms input text of a chapter into an ePub-friendly XHTML format.
+	@abstractmethod
+	def transformChapter(self, inputText):
+		pass
+
+	##########################################################################
+
+	# Frontend for transformation of a chapter into an ePub-friendly format.
+	# Calls self.transform. Caller must be prepared to catch exceptions.
+	def processChapter(self, inputText):
+
+		chapterXHTML = self.transformChapter(inputText)
+		chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapterSlug'] + '.xhtml'
+		open(chapterFilename, 'w').write(chapterXHTML['text'])
+		self.chapterLog.append({
+			'chapter': chapterXHTML['chapter'],
+			'chapterSlug': chapterXHTML['chapterSlug']
+		})
+
+	##########################################################################
+
+	# Iterates through a list of chapters and runs processChapter on each.
+	@abstractmethod
+	def processChaptersList(self, basePath, chapters):
+		pass
 
 	##########################################################################
 
@@ -373,11 +362,4 @@ class Driver(object):
 
 		# Finally, write the ePub file. Phew!
 		self.zipBook(outputFilename)
-
-	##########################################################################
-
-	# Transforms input text of a chapter into an ePub-friendly XHTML format.
-	@abstractmethod
-	def transformChapter(self, inputText):
-		pass
 

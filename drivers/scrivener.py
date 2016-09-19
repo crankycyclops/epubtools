@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+import re, os
 import util, driver
 
 class Scrivener(driver.Driver):
@@ -122,3 +122,27 @@ class Scrivener(driver.Driver):
 			'text': inputText
 		}
 
+	##########################################################################
+
+	# Iterates through a directory containing HTML-exported chapters and
+	# runs processChapter on each. Recursively enters subdirectories.
+	def processChaptersList(self, basePath, chapters):
+
+		# Process each chapter individually
+		for filename in chapters:
+
+			# Chapters might be organized into further subdirectories; don't miss them!
+			if (os.path.isdir(basePath + '/' + filename)):
+				self.processChaptersList(basePath + '/' + filename, os.listdir(basePath + '/' + filename))
+
+			else:
+
+				try:
+					inputText = open(basePath + '/' + filename, 'r').read()
+					self.processChapter(inputText)
+
+				except IOError:
+					raise Exception('Failed to write one or more chapters.')
+
+				except:
+					raise Exception('Failed to process one or more chapters.')
