@@ -254,7 +254,7 @@ class Driver(object):
 
 	# Iterates through a list of chapters and runs processChapter on each.
 	@abstractmethod
-	def processChaptersList(self, basePath, chapters):
+	def processChaptersList(self, inputPath, chapters):
 		pass
 
 	##########################################################################
