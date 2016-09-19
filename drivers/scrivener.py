@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re, os
+import re, os, zipfile, shutil
 import util, driver
 
 class Scrivener(driver.Driver):
@@ -8,8 +8,65 @@ class Scrivener(driver.Driver):
 	# Constructor
 	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate,
 	copyrightYear, includeCopyright, coverPath, tmpLocation = '/tmp'):
+
 		super().__init__(bookLang, bookPublisher, bookAuthor, bookTitle,
 			pubDate, copyrightYear, includeCopyright, coverPath, tmpLocation)
+
+		# Where we extract ZIP archives, if a ZIP archive was passed as input
+		self.extractPath = self.tmpOutputDir + '_input'
+
+	##########################################################################
+
+	# Opens up a ZIP file for input and passes back the path to the extracted
+	# contents.
+	def openZipInput(self, inputFilename):
+
+		try:
+
+			os.mkdir(self.extractPath)
+			archive = zipfile.ZipFile(inputFilename)
+
+			# This should be safe as of Python 2.7.4, which adds path
+			# traversal protection
+			archive.extractall(self.extractPath)
+			return self.extractPath
+
+		except OSError:
+			raise Exception('Error occurred during extraction. This is a bug.')
+
+		except zipfile.BadZipfile:
+			raise Exception('ZIP file is invalid.')
+
+		except:
+			raise Exception('Could not extract ZIP file.')
+
+	##########################################################################
+
+	def openDriver(self):
+
+		# Support for ZIP archives
+		if '.zip' == self.inputPath[-4:].lower():
+			self.inputPath = self.openZipInput(self.inputPath)
+
+		try:
+			self.inputDir = util.natural_sort(os.listdir(self.inputPath))
+
+		except:
+			raise Exception("An error occurred while trying to open '" + self.inputPath + ".'")
+
+	##########################################################################
+
+	# Cleans up the mess left behind after an e-book conversion.	
+	def cleanup(self):
+
+		try:
+			if os.path.exists(self.extractPath):
+				shutil.rmtree(self.extractPath)
+			super().cleanup()
+
+		# We should at least still try to let the base class run its cleanup.
+		except:
+			super().cleanup()
 
 	##########################################################################
 
