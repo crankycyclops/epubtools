@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, subprocess
 import util
 import drivers.scrivener
 
@@ -35,11 +35,21 @@ else:
 
 try:
 
+	# Select an input driver
 	if 'scriv' == inputDriver:
+
 		driver = drivers.Scrivener(lang, publisher, author, title, pubDate,
 			copyrightYear, includeCopyright, coverPath)
 
 	elif 'doc' == inputDriver:
+
+		try:
+			subprocess.check_output(['abiword', '--version'])
+
+		except:
+			util.eprint('\nAbiword executable must be installed to use the doc driver.\n')
+			sys.exit(1)
+
 		# TODO
 		util.eprint('\ndoc driver not yet implemented.\n')
 		sys.exit(1)
