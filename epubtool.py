@@ -50,9 +50,8 @@ try:
 			util.eprint('\nAbiword executable must be installed to use the doc driver.\n')
 			sys.exit(1)
 
-		# TODO
-		util.eprint('\ndoc driver not yet implemented.\n')
-		sys.exit(1)
+		driver = drivers.Abiword(lang, publisher, author, title, pubDate,
+			copyrightYear, includeCopyright, coverPath)
 
 	else:
 		util.eprint('\n' + inputDriver + 'driver not supported.\n')
