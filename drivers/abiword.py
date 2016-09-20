@@ -86,6 +86,8 @@ class Abiword(driver.Driver):
 		emphRegex = re.compile('\\\\emph{(.*?)}')
 		boldRegex = re.compile('\\\\textbf{(.*?)}')
 		underlineRegex = re.compile('\\\\uline{(.*?)}')
+		textttRegex = re.compile('\\\\texttt{(.*?)}')
+		spacingRegex = re.compile('\\\\begin{spacing}{.*?}(.*?)\end{spacing}')
 
 		invalidSlugCharsRegex = re.compile('[^a-zA-Z0-9]')
 
@@ -98,14 +100,20 @@ class Abiword(driver.Driver):
 
 		for i in range(0, len(paragraphs)):
 
-			# Next, replace latex constructs inside each paragraph with XHTML equivalents
+			# Strip out \texttt if present
+			paragraphs[i] = textttRegex.sub(r'\1', paragraphs[i])
+
+			# Strip out spacing directives
+			paragraphs[i] = spacingRegex.sub(r'\1', paragraphs[i])
+
+			# Next, replace common Latex entities with XHTML entities (this won't catch everything)
+			for char in self.specialChars.keys():
+				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
+
+			# Now, replace latex constructs inside each paragraph with XHTML equivalents
 			paragraphs[i] = emphRegex.sub(r'<em>\1</em>', paragraphs[i])
 			paragraphs[i] = boldRegex.sub(r'<strong>\1</strong>', paragraphs[i])
 			paragraphs[i] = underlineRegex.sub(r'<span style="font-decoration: underline;">\1</span>', paragraphs[i])
-
-			# Now, replace common Latex entities with XHTML entities (this won't catch everything)
-			for char in self.specialChars.keys():
-				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
 			# The first paragraph is the title, so don't add it to the body
 			if i != 0:
