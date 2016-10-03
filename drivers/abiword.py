@@ -87,7 +87,7 @@ class Abiword(driver.Driver):
 		boldRegex = re.compile('\\\\textbf{(.*?)}')
 		underlineRegex = re.compile('\\\\uline{(.*?)}')
 		textttRegex = re.compile('\\\\texttt{(.*?)}')
-		spacingRegex = re.compile('\\\\begin{spacing}{.*?}(.*?)\end{spacing}')
+		spacingRegex = re.compile('\\\\begin{spacing}{.*?}(.*?)\\\\end{spacing}')
 
 		invalidSlugCharsRegex = re.compile('[^a-zA-Z0-9]')
 
@@ -119,15 +119,16 @@ class Abiword(driver.Driver):
 			if i != 0:
 				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
 
-		chapterTemplateVars['%chapter'] = paragraphs[0]
+		chapterName = paragraphs[0].replace('<p>', '').replace('</p>', '')
+		chapterTemplateVars['%chapter'] = chapterName
 
 		chapterTemplate = open(self.scriptPath + '/templates/chapter.xhtml', 'r').read()
 		for var in chapterTemplateVars.keys():
 			chapterTemplate = chapterTemplate.replace(var, chapterTemplateVars[var])
 
 		return {
-			'chapter': paragraphs[0],
-			'chapterSlug': invalidSlugCharsRegex.sub('', paragraphs[0]),
+			'chapter': chapterName,
+			'chapterSlug': invalidSlugCharsRegex.sub('', chapterName),
 			'text': chapterTemplate
 		}
 
