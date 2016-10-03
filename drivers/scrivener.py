@@ -22,10 +22,10 @@ class Scrivener(driver.Driver):
 
 	# Constructor
 	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate,
-	copyrightYear, includeCopyright, coverPath, tmpLocation = '/tmp'):
+	copyrightYear, includeCopyright, isFiction, coverPath, tmpLocation = '/tmp'):
 
 		super().__init__(bookLang, bookPublisher, bookAuthor, bookTitle,
-			pubDate, copyrightYear, includeCopyright, coverPath, tmpLocation)
+			pubDate, copyrightYear, includeCopyright, isFiction, coverPath, tmpLocation)
 
 		# Where we extract ZIP archives, if a ZIP archive was passed as input
 		self.extractPath = self.tmpOutputDir + '_input'

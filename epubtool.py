@@ -8,8 +8,8 @@ import drivers.scrivener
 ###############################################################################
 
 # Using print as a function requires Python 3
-if len(sys.argv) < 11 or len(sys.argv) > 12:
-	util.eprint("\nUsage: " + sys.argv[0] + " <input driver: doc | scriv> <input source: zip or dir> <output epub file> <book title> <author> <copyright year> <0 = no copyright page, 1 = include copyright page> <lang> <publication date: YYYY-MM-DD> <path to cover image> [publisher name (author name used if blank)]\n")
+if len(sys.argv) < 12 or len(sys.argv) > 13:
+	util.eprint("\nUsage: " + sys.argv[0] + " <input driver: doc | scriv> <input source: zip or dir> <output epub file> <book title> <author> <copyright year> <0 = no copyright page, 1 = include copyright page> <0 = is not fiction, 1 = is fiction> <lang> <publication date: YYYY-MM-DD> <path to cover image> [publisher name (author name used if blank)]\n")
 	sys.exit(1)
 
 inputDriver = sys.argv[1].lower()
@@ -24,12 +24,17 @@ if '1' == sys.argv[7]:
 else:
 	includeCopyright = False
 
-lang = sys.argv[8] # Example: "en-US"
-pubDate = sys.argv[9] #Valid value: YYYY-MM-DD
-coverPath = sys.argv[10]
+if '1' == sys.argv[8]:
+	isFiction = True
+else:
+	isFiction = False
 
-if 12 == len(sys.argv):
-	publisher = sys.argv[11]
+lang = sys.argv[9] # Example: "en-US"
+pubDate = sys.argv[10] #Valid value: YYYY-MM-DD
+coverPath = sys.argv[11]
+
+if 13 == len(sys.argv):
+	publisher = sys.argv[12]
 else:
 	publisher = author
 
@@ -39,7 +44,7 @@ try:
 	if 'scriv' == inputDriver:
 
 		driver = drivers.Scrivener(lang, publisher, author, title, pubDate,
-			copyrightYear, includeCopyright, coverPath)
+			copyrightYear, includeCopyright, isFiction, coverPath)
 
 	elif 'doc' == inputDriver:
 
@@ -51,7 +56,7 @@ try:
 			sys.exit(1)
 
 		driver = drivers.Abiword(lang, publisher, author, title, pubDate,
-			copyrightYear, includeCopyright, coverPath)
+			copyrightYear, includeCopyright, isFiction, coverPath)
 
 	else:
 		util.eprint('\n' + inputDriver + 'driver not supported.\n')
