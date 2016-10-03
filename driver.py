@@ -107,7 +107,7 @@ class Driver(object):
 
 		else:
 			self.templateVars['%copyrightPageManifestEntry'] = '';
-			self.templatevars['%copyrightSpineEntry'] = '';
+			self.templateVars['%copyrightSpineEntry'] = '';
 			self.templateVars['%copyrightTocEntry'] = '';
 
 	##########################################################################
