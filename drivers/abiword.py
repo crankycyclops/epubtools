@@ -119,6 +119,10 @@ class Abiword(driver.Driver):
 		#pprint.pprint(paragraphs)
 		#sys.exit(0)
 
+		# Set to the index of the first non-blank paragraph, which is
+		# used as the chapter heading
+		chapterHeadingIndex = False
+
 		for i in range(0, len(paragraphs)):
 
 			# Replace latex constructs inside each paragraph with XHTML equivalents
@@ -148,11 +152,19 @@ class Abiword(driver.Driver):
 			for char in self.specialChars.keys():
 				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
-			# The first paragraph is the title, so don't add it to the body
-			if i != 0:
+			# Wait for the first non-empty line, and use it as the chapter heading
+			if bool == type(chapterHeadingIndex):
+
+				if len(re.compile('<p>(.*?)</p>').sub(r'\1', paragraphs[i]).strip()) > 0:
+					chapterHeadingIndex = i
+
+				continue
+
+			# Add all other paragraphs to the body text
+			else:
 				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
 
-		chapterName = paragraphs[0].replace('<p>', '').replace('</p>', '')
+		chapterName = paragraphs[chapterHeadingIndex].replace('<p>', '').replace('</p>', '')
 		chapterTemplateVars['%chapter'] = chapterName
 
 		chapterTemplate = open(self.scriptPath + '/templates/chapter.xhtml', 'r').read()
@@ -190,7 +202,7 @@ class Abiword(driver.Driver):
 		for i in range(0, len(texLines)):
 
 			# Chapter break; process the next chapter
-			if '\\newpage\n' == texLines[i]:
+			if '\\newpage' in texLines[i]:
 				self.processChapter(chapterText)
 				chapterText = ''; # Reset inputText for the next chapter
 
