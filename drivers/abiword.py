@@ -165,8 +165,6 @@ class Abiword(driver.Driver):
 			else:
 				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
 
-			print(paragraphs[i])
-
 		chapterName = paragraphs[chapterHeadingIndex].replace('<p>', '').replace('</p>', '')
 		chapterTemplateVars['%chapter'] = chapterName
 
@@ -174,9 +172,13 @@ class Abiword(driver.Driver):
 		for var in chapterTemplateVars.keys():
 			chapterTemplate = chapterTemplate.replace(var, chapterTemplateVars[var])
 
+		chapterSlug = invalidSlugCharsRegex.sub('', chapterName)
+		if len(chapterSlug) > 80:
+			chapterSlug = chapterSlug[:80];
+
 		return {
 			'chapter': chapterName,
-			'chapterSlug': invalidSlugCharsRegex.sub('', chapterName),
+			'chapterSlug': chapterSlug,
 			'text': chapterTemplate
 		}
 
