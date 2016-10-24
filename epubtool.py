@@ -73,7 +73,12 @@ try:
 	sys.exit(0)
 
 except Exception as error:
+
+	import traceback
+	util.eprint('\nTraceback:\n')
+	traceback.print_tb(error.__traceback__)
+	util.eprint('\nError: ' + error.args[0] + '\n')
+
 	driver.cleanup()
-	util.eprint('\n' + error.args[0] + '\n')
 	sys.exit(4)
 
