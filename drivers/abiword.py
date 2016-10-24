@@ -18,7 +18,8 @@ class Abiword(driver.Driver):
 		"®":        "&#174;",  #reg
 		"--":       "&#8211;", #ndash
 		"\~{n}":    "&#241;",  #ntilde
-		"\~{N}":    "&#209;"   #Ntilde
+		"\~{N}":    "&#209;",  #Ntilde
+		"\\\\":     "<br />"   #Line break
 	}
 
 	##########################################################################
@@ -72,8 +73,8 @@ class Abiword(driver.Driver):
 		nextParagraph = ''
 		paragraphs = []
 
-		beginParagraphRegex = re.compile('^(\\\\begin{flushleft}({\d+})*|\\\\begin{flushright}({\d+})*|\\\\begin{center}({\d+})*|\\\\begin{spacing}({\d+})*)')
-		endParagraphRegex = re.compile('^(\\\\end{flushleft}|\\\\end{flushright}|\\\\end{center}|\\\\end{spacing})')
+		beginParagraphRegex = re.compile('(\\\\begin{flushleft}({\d+})*|\\\\begin{flushright}({\d+})*|\\\\begin{center}({\d+})*|\\\\begin{spacing}({\d+})*)')
+		endParagraphRegex = re.compile('(\\\\end{flushleft}|\\\\end{flushright}|\\\\end{center}|\\\\end{spacing})')
 
 		# First, extract out each paragraph
 		lines = inputText.split('\n')
@@ -142,6 +143,10 @@ class Abiword(driver.Driver):
 			for char in self.specialChars.keys():
 				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
+			# Strip out other font-related stuff
+			paragraphs[i] = largeRegex.sub(r'\1', paragraphs[i])
+			paragraphs[i] = textColorRegex.sub(r'\1', paragraphs[i])
+
 			# Replace latex constructs inside each paragraph with XHTML equivalents
 			paragraphs[i] = emphRegex.sub(r'<em>\1</em>', paragraphs[i])
 			paragraphs[i] = boldRegex.sub(r'<strong>\1</strong>', paragraphs[i])
@@ -153,10 +158,6 @@ class Abiword(driver.Driver):
 			# Strip out spacing directives
 			paragraphs[i] = spacingRegex.sub(r'\1', paragraphs[i])
 
-			# Strip out other font-related stuff
-			paragraphs[i] = largeRegex.sub(r'\1', paragraphs[i])
-			paragraphs[i] = textColorRegex.sub(r'\1', paragraphs[i])
-
 			# Strip out hypertags if present
 			paragraphs[i] = hypertargetBrokenRegex.sub(r'\1', paragraphs[i])
 			paragraphs[i] = hypertargetBrokenRegex2.sub(r'\1', paragraphs[i])
@@ -166,6 +167,13 @@ class Abiword(driver.Driver):
 			# Attempt an imperfect fix for Abiword f**kery
 			paragraphs[i] = braceFixRegex1.sub(r'\1</p>', paragraphs[i])
 			paragraphs[i] = braceFixRegex2.sub(r'<p>\1', paragraphs[i])
+
+			# Though the markers I'm using to identify the beginning of
+			# paragraphs are valid, there may be more than one, because
+			# they're really used for formatting. So if there's more than
+			# one left behind, we should remove it.
+			paragraphs[i] = beginParagraphRegex.sub('', paragraphs[i])
+			paragraphs[i] = endParagraphRegex.sub('', paragraphs[i])
 
 			# Wait for the first non-empty line, and use it as the chapter heading
 			if bool == type(chapterHeadingIndex):
