@@ -100,6 +100,14 @@ class Abiword(driver.Driver):
 		spacingRegex = re.compile('\\\\begin{spacing}{.*?}(.*?)\\\\end{spacing}')
 		hypertargetRegex = re.compile('\\\\hypertarget{.*?}{(.*?)}')
 
+		# One of the DOCX files I tested with ended up marking every paragraph /large.
+		# It looks like this has to do with font size. We're ignoring font size, so
+		# just strip these out.
+		largeRegex = re.compile('{\\\\large\s+(.*?)}')
+
+		# Ignore text colors
+		textColorRegex = re.compile('\\\\textcolor\[rgb\]{\d+.\d+,\s*\d+.\d+,\s*\d+.\d+}{(.*?)}')
+
 		# As far as I can tell, this is Abiword f*cking up... Run these in order.
 		hypertargetBrokenRegex = re.compile('\\\\hypertarget{.*?}{}(.*?)\\\\hypertarget{.*?}{')
 		hypertargetBrokenRegex2 = re.compile('}(.*?)\\\\hypertarget{.*?}{')
@@ -138,6 +146,10 @@ class Abiword(driver.Driver):
 
 			# Strip out spacing directives
 			paragraphs[i] = spacingRegex.sub(r'\1', paragraphs[i])
+
+			# Strip out other font-related stuff
+			paragraphs[i] = largeRegex.sub(r'\1', paragraphs[i])
+			paragraphs[i] = textColorRegex.sub(r'\1', paragraphs[i])
 
 			# Strip out hypertags if present
 			paragraphs[i] = hypertargetBrokenRegex.sub(r'\1', paragraphs[i])
