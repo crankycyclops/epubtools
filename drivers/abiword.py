@@ -7,6 +7,9 @@ class Abiword(driver.Driver):
 
 	# Note that order is important here!
 	specialChars = {
+		"\\~{n}":   "&#241;",  #ntilde
+		"\\~{N}":   "&#209;",  #Ntilde
+		"\\'{e}":   "&#233;",  #Acute accented e
 		"''":       "&#8221;", #rdquo
 		"'":        "&#8217;", #rsquo
 		"{`}":      "&#8216;", #lsquo
@@ -17,8 +20,6 @@ class Abiword(driver.Driver):
 		"©":        "&#169;",  #copy
 		"®":        "&#174;",  #reg
 		"--":       "&#8211;", #ndash
-		"\~{n}":    "&#241;",  #ntilde
-		"\~{N}":    "&#209;",  #Ntilde
 		"\\\\":     "<br />"   #Line break
 	}
 
