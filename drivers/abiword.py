@@ -70,12 +70,15 @@ class Abiword(driver.Driver):
 		nextParagraph = ''
 		paragraphs = []
 
+		beginParagraphRegex = re.compile('^(\\\\begin{flushleft}({\d+})*|\\\\begin{flushright}({\d+})*|\\\\begin{center}({\d+})*|\\\\begin{spacing}({\d+})*)')
+		endParagraphRegex = re.compile('^(\\\\end{flushleft}|\\\\end{flushright}|\\\\end{center}|\\\\end{spacing})')
+
 		# First, extract out each paragraph
 		lines = inputText.split('\n')
 		for i in range(0, len(lines)):
 
 			if inParagraph:
-				if '\\end{flushleft}' == lines[i] or '\\end{flushright}' == lines[i] or '\\end{center}' == lines[i]:
+				if re.match(endParagraphRegex, lines[i]):
 					paragraphs.append('<p>' + nextParagraph + '</p>')
 					nextParagraph = ''
 					inParagraph = False
@@ -83,7 +86,7 @@ class Abiword(driver.Driver):
 					nextParagraph += lines[i]
 
 			else:
-				if '\\begin{flushleft}' == lines[i] or '\\begin{flushright}' == lines[i] or '\\begin{center}' == lines[i]:
+				if re.match(beginParagraphRegex, lines[i]):
 					inParagraph = True
 
 		# Make sure we didn't encounter a blank chapter, which should be skipped
@@ -161,6 +164,8 @@ class Abiword(driver.Driver):
 			# Add all other paragraphs to the body text
 			else:
 				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
+
+			print(paragraphs[i])
 
 		chapterName = paragraphs[chapterHeadingIndex].replace('<p>', '').replace('</p>', '')
 		chapterTemplateVars['%chapter'] = chapterName
