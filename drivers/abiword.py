@@ -31,6 +31,7 @@ class Abiword(driver.Driver):
 	specialChars["™"]        = "&#8482;"  #trade
 	specialChars["©"]        = "&#169;"   #copy
 	specialChars["®"]        = "&#174;"   #reg
+	specialChars["\$"]       = "$"        # Dollar sign
 	specialChars["--"]       = "&#8211;"  #ndash
 	specialChars["\\\\"]     = "<br />"   #Line break
 
