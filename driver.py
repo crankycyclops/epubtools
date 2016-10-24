@@ -243,12 +243,14 @@ class Driver(object):
 	def processChapter(self, inputText):
 
 		chapterXHTML = self.transformChapter(inputText)
-		chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapterSlug'] + '.xhtml'
-		open(chapterFilename, 'w').write(chapterXHTML['text'])
-		self.chapterLog.append({
-			'chapter': chapterXHTML['chapter'],
-			'chapterSlug': chapterXHTML['chapterSlug']
-		})
+
+		if chapterXHTML:
+			chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapterSlug'] + '.xhtml'
+			open(chapterFilename, 'w').write(chapterXHTML['text'])
+			self.chapterLog.append({
+				'chapter': chapterXHTML['chapter'],
+				'chapterSlug': chapterXHTML['chapterSlug']
+			})
 
 	##########################################################################
 

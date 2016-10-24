@@ -86,6 +86,10 @@ class Abiword(driver.Driver):
 				if '\\begin{flushleft}' == lines[i] or '\\begin{flushright}' == lines[i] or '\\begin{center}' == lines[i]:
 					inParagraph = True
 
+		# Make sure we didn't encounter a blank chapter, which should be skipped
+		if 0 == len(paragraphs):
+			return False
+
 		emphRegex = re.compile('\\\\emph{(.*?)}')
 		boldRegex = re.compile('\\\\textbf{(.*?)}')
 		underlineRegex = re.compile('\\\\uline{(.*?)}')
@@ -115,10 +119,6 @@ class Abiword(driver.Driver):
 			'%paragraphs': ''
 		}
 
-		#import pprint, sys
-		#pprint.pprint(paragraphs)
-		#sys.exit(0)
-
 		# Set to the index of the first non-blank paragraph, which is
 		# used as the chapter heading
 		chapterHeadingIndex = False
@@ -141,8 +141,6 @@ class Abiword(driver.Driver):
 			paragraphs[i] = hypertargetBrokenRegex2.sub(r'\1', paragraphs[i])
 			paragraphs[i] = hypertargetBrokenRegex3.sub(r'\1', paragraphs[i])
 			paragraphs[i] = hypertargetRegex.sub(r'\1', paragraphs[i])
-
-			print(paragraphs[i])
 
 			# Attempt an imperfect fix for Abiword f**kery
 			paragraphs[i] = braceFixRegex1.sub(r'\1</p>', paragraphs[i])
