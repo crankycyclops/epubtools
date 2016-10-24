@@ -16,7 +16,9 @@ class Abiword(driver.Driver):
 		"™":        "&#8482;", #trade
 		"©":        "&#169;",  #copy
 		"®":        "&#174;",  #reg
-		"--":       "&#8211;"  #ndash
+		"--":       "&#8211;", #ndash
+		"\~{n}":    "&#241;",  #ntilde
+		"\~{N}":    "&#209;"   #Ntilde
 	}
 
 	##########################################################################
@@ -136,6 +138,10 @@ class Abiword(driver.Driver):
 
 		for i in range(0, len(paragraphs)):
 
+			# Replace common Latex entities with XHTML entities (this won't catch everything)
+			for char in self.specialChars.keys():
+				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
+
 			# Replace latex constructs inside each paragraph with XHTML equivalents
 			paragraphs[i] = emphRegex.sub(r'<em>\1</em>', paragraphs[i])
 			paragraphs[i] = boldRegex.sub(r'<strong>\1</strong>', paragraphs[i])
@@ -160,10 +166,6 @@ class Abiword(driver.Driver):
 			# Attempt an imperfect fix for Abiword f**kery
 			paragraphs[i] = braceFixRegex1.sub(r'\1</p>', paragraphs[i])
 			paragraphs[i] = braceFixRegex2.sub(r'<p>\1', paragraphs[i])
-
-			# Next, replace common Latex entities with XHTML entities (this won't catch everything)
-			for char in self.specialChars.keys():
-				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
 			# Wait for the first non-empty line, and use it as the chapter heading
 			if bool == type(chapterHeadingIndex):
