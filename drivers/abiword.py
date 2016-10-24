@@ -8,15 +8,10 @@ class Abiword(driver.Driver):
 	# Note that order is important here!
 	specialChars = {
 		"''":       "&#8221;", #rdquo
+		"\\'{e}":   "&#233;",  #Acute accented e
+		"'":        "&#8217;", #rsquo
 		"\\~{n}":   "&#241;",  #ntilde
 		"\\~{N}":   "&#209;",  #Ntilde
-		"\\'{e}":   "&#233;",  #Acute accented e
-		"\\'{a}":   "&#225;",  #Acute accented a
-		"\\'{i}":   "&#237;",  #Acute accented i
-		"\\'{o}":   "&#243;",  #Acute accented o
-		"\\'{u}":   "&#250;",  #Acute accented u
-		"\\'{y}":   "&#253;",  #Acute accented y
-		"'":        "&#8217;", #rsquo
 		"{`}":      "&#8216;", #lsquo
 		"{``}":     "&#8220;", #ldquo
 		"\ldots{}": "&#8230;", #hellip
