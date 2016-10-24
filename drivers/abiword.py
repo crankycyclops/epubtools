@@ -1,27 +1,38 @@
 # -*- coding: utf-8 -*-
 
-import re, os, sys, subprocess, shutil
+import re, os, sys, subprocess, shutil, collections
 import util, driver
 
 class Abiword(driver.Driver):
 
 	# Note that order is important here!
-	specialChars = {
-		"''":       "&#8221;", #rdquo
-		"\\'{e}":   "&#233;",  #Acute accented e
-		"'":        "&#8217;", #rsquo
-		"\\~{n}":   "&#241;",  #ntilde
-		"\\~{N}":   "&#209;",  #Ntilde
-		"{`}":      "&#8216;", #lsquo
-		"{``}":     "&#8220;", #ldquo
-		"\ldots{}": "&#8230;", #hellip
-		"---":      "&#8212;", #mdash
-		"™":        "&#8482;", #trade
-		"©":        "&#169;",  #copy
-		"®":        "&#174;",  #reg
-		"--":       "&#8211;", #ndash
-		"\\\\":     "<br />"   #Line break
-	}
+	specialChars = collections.OrderedDict()
+
+	specialChars["''"]       = "&#8221;"  #rdquo
+	specialChars["\\'{a}"]   = "&#225;"   #Acute accented a
+	specialChars["\\'{e}"]   = "&#233;"   #Acute accented e
+	specialChars["\\'{i}"]   = "&#237;"   #Acute accented i
+	specialChars["\\'{o}"]   = "&#243;"   #Acute accented o
+	specialChars["\\'{u}"]   = "&#250;"   #Acute accented u
+	specialChars["\\'{y}"]   = "&#253;"   #Acute accented y
+	specialChars["\\'{A}"]   = "&#225;"   #Acute accented A
+	specialChars["\\'{E}"]   = "&#233;"   #Acute accented E
+	specialChars["\\'{I}"]   = "&#237;"   #Acute accented I
+	specialChars["\\'{O}"]   = "&#243;"   #Acute accented O
+	specialChars["\\'{U}"]   = "&#250;"   #Acute accented U
+	specialChars["\\'{Y}"]   = "&#253;"   #Acute accented Y
+	specialChars["'"]        = "&#8217;"  #rsquo
+	specialChars["\\~{n}"]   = "&#241;"   #ntilde
+	specialChars["\\~{N}"]   = "&#209;"   #Ntilde
+	specialChars["{`}"]      = "&#8216;"  #lsquo
+	specialChars["{``}"]     = "&#8220;"  #ldquo
+	specialChars["\ldots{}"] = "&#8230;"  #hellip
+	specialChars["---"]      = "&#8212;"  #mdash
+	specialChars["™"]        = "&#8482;"  #trade
+	specialChars["©"]        = "&#169;"   #copy
+	specialChars["®"]        = "&#174;"   #reg
+	specialChars["--"]       = "&#8211;"  #ndash
+	specialChars["\\\\"]     = "<br />"   #Line break
 
 	##########################################################################
 
