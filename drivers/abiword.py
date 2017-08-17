@@ -86,7 +86,7 @@ class Abiword(driver.Driver):
 		nextParagraph = ''
 		paragraphs = []
 
-		beginParagraphRegex = re.compile('(\\\\begin{flushleft}({\d+})*|\\\\begin{flushright}({\d+})*|\\\\begin{center}({\d+})*|\\\\begin{spacing}({\d+})*)')
+		beginParagraphRegex = re.compile('(\\\\begin{flushleft}({.*?})*|\\\\begin{flushright}({.*?})*|\\\\begin{center}({.*?})*|\\\\begin{spacing}({.*?})*)')
 		endParagraphRegex = re.compile('(\\\\end{flushleft}|\\\\end{flushright}|\\\\end{center}|\\\\end{spacing})')
 
 		# First, extract out each paragraph
@@ -220,7 +220,7 @@ class Abiword(driver.Driver):
 	##########################################################################
 
 	# Makes an external call to abiword, which reads the input file and outputs
-	# it as a latex file that we can parse much more easily.
+	# it as a latex file that we can parse.
 	def processChaptersList(self, inputPath, chapters):
 
 		latexFilePath = self.latexPath + '/input.tex'
