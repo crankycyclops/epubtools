@@ -213,7 +213,8 @@ class Abiword(driver.Driver):
 			else:
 				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
 
-		chapterName = paragraphs[chapterHeadingIndex].replace('<p>', '').replace('</p>', '')
+		# make sure to strip all html tags out of the chapter heading
+		chapterName = re.compile(r'<[^>]+>').sub('', paragraphs[chapterHeadingIndex])
 		chapterTemplateVars['%chapter'] = chapterName
 
 		chapterTemplate = open(self.scriptPath + '/templates/chapter.xhtml', 'r').read()
