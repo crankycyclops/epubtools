@@ -8,19 +8,31 @@ class Abiword(driver.Driver):
 	# Note that order is important here!
 	specialChars = collections.OrderedDict()
 
-	specialChars["''"]       = "&#8221;"  #rdquo
-	specialChars["\\'{a}"]   = "&#225;"   #Acute accented a
-	specialChars["\\'{e}"]   = "&#233;"   #Acute accented e
-	specialChars["\\'{i}"]   = "&#237;"   #Acute accented i
-	specialChars["\\'{o}"]   = "&#243;"   #Acute accented o
-	specialChars["\\'{u}"]   = "&#250;"   #Acute accented u
-	specialChars["\\'{y}"]   = "&#253;"   #Acute accented y
-	specialChars["\\'{A}"]   = "&#193;"   #Acute accented A
-	specialChars["\\'{E}"]   = "&#201;"   #Acute accented E
-	specialChars["\\'{I}"]   = "&#205;"   #Acute accented I
-	specialChars["\\'{O}"]   = "&#211;"   #Acute accented O
-	specialChars["\\'{U}"]   = "&#218;"   #Acute accented U
-	specialChars["\\'{Y}"]   = "&#221;"   #Acute accented Y
+	specialChars["''"]       = "&#8221;"   #rdquo
+	specialChars["\\'{a}"]   = "&#225;"    #Acute accented a
+	specialChars["\\'{e}"]   = "&#233;"    #Acute accented e
+	specialChars["\\'{i}"]   = "&#237;"    #Acute accented i
+	specialChars["\\'{o}"]   = "&#243;"    #Acute accented o
+	specialChars["\\'{u}"]   = "&#250;"    #Acute accented u
+	specialChars["\\'{y}"]   = "&#253;"    #Acute accented y
+	specialChars["\\'{A}"]   = "&#193;"    #Acute accented A
+	specialChars["\\'{E}"]   = "&#201;"    #Acute accented E
+	specialChars["\\'{I}"]   = "&#205;"    #Acute accented I
+	specialChars["\\'{O}"]   = "&#211;"    #Acute accented O
+	specialChars["\\'{U}"]   = "&#218;"    #Acute accented U
+	specialChars["\\'{Y}"]   = "&#221;"    #Acute accented Y
+	specialChars["\\`{a}"]   = "&#224;"    #Grave accented a
+	specialChars["\\`{e}"]   = "&#232;"    #Grave accented e
+	specialChars["\\`{i}"]   = "&#236;"    #Grave accented i
+	specialChars["\\`{o}"]   = "&#242;"    #Grave accented o
+	specialChars["\\`{u}"]   = "&#249;"    #Grave accented u
+	specialChars["\\`{y}"]   = "&#7923;"   #Grave accented y
+	specialChars["\\`{A}"]   = "&#192;"    #Grave accented A
+	specialChars["\\`{E}"]   = "&#200;"    #Grave accented E
+	specialChars["\\`{I}"]   = "&#204;"    #Grave accented I
+	specialChars["\\`{O}"]   = "&#210;"    #Grave accented O
+	specialChars["\\`{U}"]   = "&#217;"    #Grave accented U
+	specialChars["\\`{Y}"]   = "&#7922;"   #Grave accented Y
 	specialChars["'"]        = "&#8217;"  #rsquo
 	specialChars["\\~{n}"]   = "&#241;"   #ntilde
 	specialChars["\\~{N}"]   = "&#209;"   #Ntilde
@@ -116,10 +128,10 @@ class Abiword(driver.Driver):
 		spacingRegex = re.compile('\\\\begin{spacing}{.*?}(.*?)\\\\end{spacing}')
 		hypertargetRegex = re.compile('\\\\hypertarget{.*?}{(.*?)}')
 
-		# One of the DOCX files I tested with ended up marking every paragraph /large.
+		# One of the DOCX files I tested with ended up marking every paragraph \large.
 		# It looks like this has to do with font size. We're ignoring font size, so
 		# just strip these out.
-		largeRegex = re.compile('{\\\\large\s+(.*?)}')
+		largeRegex = re.compile('{(\\\\large|\\\\Large)\s+(.*?)}')
 
 		# Ignore text colors
 		textColorRegex = re.compile('\\\\textcolor\[rgb\]{\d+.\d+,\s*\d+.\d+,\s*\d+.\d+}{(.*?)}')
@@ -157,7 +169,7 @@ class Abiword(driver.Driver):
 				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
 			# Strip out other font-related stuff
-			paragraphs[i] = largeRegex.sub(r'\1', paragraphs[i])
+			paragraphs[i] = largeRegex.sub(r'\2', paragraphs[i])
 			paragraphs[i] = textColorRegex.sub(r'\1', paragraphs[i])
 
 			# Replace latex constructs inside each paragraph with XHTML equivalents
