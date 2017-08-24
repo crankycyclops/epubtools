@@ -5,6 +5,10 @@ import util, driver
 
 class Abiword(driver.Driver):
 
+	# Will keep track of chapter slugs so we can append a number to make it
+	# unique if necessary
+	chapterSlugs = {}
+
 	# Note that order is important here!
 	specialChars = collections.OrderedDict()
 
@@ -222,12 +226,18 @@ class Abiword(driver.Driver):
 			chapterTemplate = chapterTemplate.replace(var, chapterTemplateVars[var])
 
 		chapterSlug = invalidSlugCharsRegex.sub('', chapterName)
-		if len(chapterSlug) > 80:
-			chapterSlug = chapterSlug[:80];
+		if len(chapterSlug) > 15:
+			chapterSlug = chapterSlug[:15];
+
+		# make sure we always have a unique slug
+		if chapterSlug in self.chapterSlugs.keys():
+			self.chapterSlugs[chapterSlug] = self.chapterSlugs[chapterSlug] + 1
+		else:
+			self.chapterSlugs[chapterSlug] = 1
 
 		return {
 			'chapter': chapterName,
-			'chapterSlug': chapterSlug,
+			'chapterSlug': chapterSlug + '_' + str(self.chapterSlugs[chapterSlug]),
 			'text': chapterTemplate
 		}
 
