@@ -49,6 +49,8 @@ class Abiword(driver.Driver):
 	specialChars["®"]        = "&#174;"   #reg
 	specialChars["\$"]       = "$"        # Dollar sign
 	specialChars["\&"]       = "&#38;"    #ampersand
+	specialChars["\{"]       = "&#123;"   #left brace (entity prevents regex conflict later)
+	specialChars["\}"]       = "&#125;"   #right brace (entity prevents regex conflict later)
 	specialChars["--"]       = "&#8211;"  #ndash
 	specialChars["\\\\"]     = "<br />"   #Line break
 
@@ -146,11 +148,10 @@ class Abiword(driver.Driver):
 		hypertargetBrokenRegex2 = re.compile('}(.*?)\\\\hypertarget{.*?}{')
 		hypertargetBrokenRegex3 = re.compile('(.*?)\\\\hypertarget{.*?}{')
 
-		# These are a best guess in an attempt to clean up Abiword's mess. There will, of course,
-		# be edge cases where the user intended to have unbalanced braces. Oh well, not my fault.
-		# Abiword is just kind of garbage when it comes to the conversion of Word Docs to Latex.
-		# This at least limits the removal to only unbalanced parenthesis at the beginning or
-		# end of the string, which minimizes false positives.
+		# These are a best guess in an attempt to clean up Abiword's mess in the
+		# case where, for whatever reason, it doesn't properly balance curly
+		# braces. I'm replacing instances of \{ and \} in the latex with numeric
+		# entities rather than brace characters directly to avoid a conflict here.
 		braceFixRegex1 = re.compile('(<p>[^{]+?)}</p>')
 		braceFixRegex2 = re.compile('<p>{([^}]+?</p>)')
 
@@ -200,8 +201,8 @@ class Abiword(driver.Driver):
 
 			# Though the markers I'm using to identify the beginning of
 			# paragraphs are valid, there may be more than one, because
-			# they're really used for formatting. So if there's more than
-			# one left behind, we should remove it.
+			# they're really used for formatting. So if there're more than
+			# one left behind, we should remove them.
 			paragraphs[i] = beginParagraphRegex.sub('', paragraphs[i])
 			paragraphs[i] = endParagraphRegex.sub('', paragraphs[i])
 
