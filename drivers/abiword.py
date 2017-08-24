@@ -49,8 +49,8 @@ class Abiword(driver.Driver):
 	specialChars["®"]        = "&#174;"   #reg
 	specialChars["\$"]       = "$"        # Dollar sign
 	specialChars["\&"]       = "&#38;"    #ampersand
-	specialChars["\{"]       = "&#123;"   #left brace (entity prevents regex conflict later)
-	specialChars["\}"]       = "&#125;"   #right brace (entity prevents regex conflict later)
+	#specialChars["\{"]       = "&#123;"   #left brace (entity prevents regex conflict later)
+	#specialChars["\}"]       = "&#125;"   #right brace (entity prevents regex conflict later)
 	specialChars["--"]       = "&#8211;"  #ndash
 	specialChars["\\\\"]     = "<br />"   #Line break
 
@@ -138,7 +138,7 @@ class Abiword(driver.Driver):
 		# One of the DOCX files I tested with ended up marking every paragraph \large.
 		# It looks like this has to do with font size. We're ignoring font size, so
 		# just strip these out.
-		largeRegex = re.compile('{(\\\\large|\\\\Large)\s+(.*?)}')
+		textSizeRegex = re.compile('{(\\\\large|\\\\Large|\\\\normalsize)\s+(.*?)}')
 
 		# Ignore text colors
 		textColorRegex = re.compile('\\\\textcolor\[rgb\]{\d+.\d+,\s*\d+.\d+,\s*\d+.\d+}{(.*?)}')
@@ -160,7 +160,6 @@ class Abiword(driver.Driver):
 		chapterTemplateVars = {
 			'%title': self.bookTitle,
 			'%chapter': '',
-			'%slugChapter': 'ch' + invalidSlugCharsRegex.sub('', paragraphs[0]),
 			'%paragraphs': ''
 		}
 
@@ -175,7 +174,7 @@ class Abiword(driver.Driver):
 				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
 			# Strip out other font-related stuff
-			paragraphs[i] = largeRegex.sub(r'\2', paragraphs[i])
+			paragraphs[i] = textSizeRegex.sub(r'\2', paragraphs[i])
 			paragraphs[i] = textColorRegex.sub(r'\1', paragraphs[i])
 
 			# Replace latex constructs inside each paragraph with XHTML equivalents
@@ -210,6 +209,7 @@ class Abiword(driver.Driver):
 			if bool == type(chapterHeadingIndex):
 
 				if len(re.compile('<p>(.*?)</p>').sub(r'\1', paragraphs[i]).strip()) > 0:
+					chapterTemplateVars['%slugChapter'] = 'ch' + invalidSlugCharsRegex.sub('', paragraphs[0])
 					chapterHeadingIndex = i
 
 				continue
