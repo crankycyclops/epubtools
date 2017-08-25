@@ -102,6 +102,15 @@ class Abiword(driver.Driver):
 	def transformChapter(self, inputText):
 
 		inParagraph = False
+		inPlainText = False
+
+		# If we're in an unmarked plain text paragraph, we need to split off the
+		# first line of the first paragraph and treat it as a separate paragraph
+		# so it can be used for a reasonably sane chapter heading. This lets us
+		# know, if we enter a plain text paragraph, whether or not we've
+		# encountered the first non-blank paragraph already.
+		foundFirstParagraph = False
+
 		nextParagraph = ''
 		paragraphs = []
 
@@ -113,16 +122,59 @@ class Abiword(driver.Driver):
 		for i in range(0, len(lines)):
 
 			if inParagraph:
-				if re.match(endParagraphRegex, lines[i]):
+
+				# The beginning of a marked paragraph signals the end of a plain
+				# text block. We also need to end the paragraph if we've passed
+				# the first line of an unmarked plain text block, as this will
+				# be used as the chapter heading.
+				if inPlainText and (re.match(beginParagraphRegex, lines[i]) or (not foundFirstParagraph and len(lines[i].strip()) > 0)):
 					paragraphs.append('<p>' + nextParagraph + '</p>')
 					nextParagraph = ''
 					inParagraph = False
-				else:
+					inPlainText = False
+					foundFirstParagraph = True
+
+					# Little hack so we can re-detect the beginning of the
+					# marked paragraph
+					if re.match(beginParagraphRegex, lines[i]):
+						i = i - 1
+
+				# We're ending a marked paragraph
+				elif re.match(endParagraphRegex, lines[i]):
+					paragraphs.append('<p>' + nextParagraph + '</p>')
+					nextParagraph = ''
+					inParagraph = False
+					if len(lines[i].strip()) > 0:
+						foundFirstParagraph = True
+
+				# We're continuing an existing paragraph
+				elif not inPlainText or len(lines[i].lstrip()) > 0 and lines[i].lstrip()[0] != '\\' and lines[i].lstrip()[0] != '%':
 					nextParagraph += lines[i]
+					if inPlainText:
+						nextParagraph += '<br />\n'
 
 			else:
+
+				# We just entered a marked paragraph
 				if re.match(beginParagraphRegex, lines[i]):
 					inParagraph = True
+					inPlainText = False
+
+				# We just entered an unmarked plain text block that we're going
+				# to treat the same as a paragraph (poor formatting on the part
+				# of the author, whatcha goin' to do...?)
+				elif len(lines[i].lstrip()) > 0 and lines[i].lstrip()[0] != '\\' and lines[i].lstrip()[0] != '%':
+					nextParagraph += lines[i] + '<br />\n'
+					inParagraph = True
+					inPlainText = True
+
+		# We should only get here if the entire chapter is one long plain text
+		# block, in which case we need to treat that whole thing as a single
+		# paragraph
+		if inParagraph and inPlainText:
+			paragraphs.append('<p>' + nextParagraph + '</p>')
+			nextParagraph = ''
+			inParagraph = False
 
 		# Make sure we didn't encounter a blank chapter, which should be skipped
 		if 0 == len(paragraphs):
@@ -169,6 +221,12 @@ class Abiword(driver.Driver):
 
 		for i in range(0, len(paragraphs)):
 
+			# If it's a plain text block instead of a marked paragraph, make sure
+			# to strip out the last line break
+			if '<br />' in paragraphs[i]:
+				paragraphs[i] = paragraphs[i][:-11]
+				paragraphs[i] += '</p>'
+
 			# Replace common Latex entities with XHTML entities (this won't catch everything)
 			for char in self.specialChars.keys():
 				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
@@ -209,7 +267,10 @@ class Abiword(driver.Driver):
 			if bool == type(chapterHeadingIndex):
 
 				if len(re.compile('<p>(.*?)</p>').sub(r'\1', paragraphs[i]).strip()) > 0:
-					chapterTemplateVars['%slugChapter'] = 'ch' + invalidSlugCharsRegex.sub('', paragraphs[0])
+					print(paragraphs[i])
+					# Strip out tags and newlines from the chapter heading
+					paragraphs[i] = re.compile(r'<[^>]+>').sub('', paragraphs[i]).replace('\n', '').strip()
+					chapterTemplateVars['%slugChapter'] = 'ch' + invalidSlugCharsRegex.sub('', paragraphs[i])
 					chapterHeadingIndex = i
 
 				continue
@@ -218,8 +279,7 @@ class Abiword(driver.Driver):
 			else:
 				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
 
-		# make sure to strip all html tags out of the chapter heading
-		chapterName = re.compile(r'<[^>]+>').sub('', paragraphs[chapterHeadingIndex])
+		chapterName = paragraphs[chapterHeadingIndex]
 		chapterTemplateVars['%chapter'] = chapterName
 
 		chapterTemplate = open(self.scriptPath + '/templates/chapter.xhtml', 'r').read()
