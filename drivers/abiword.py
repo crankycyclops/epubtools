@@ -279,6 +279,11 @@ class Abiword(driver.Driver):
 			else:
 				chapterTemplateVars['%paragraphs'] += '\t\t\t\t' + paragraphs[i] + '\n'
 
+		# We had only empty paragraphs in the whole chapter, so obviously this
+		# shouldn't be counted as a chapter at all.
+		if '%slugChapter' not in chapterTemplateVars.keys():
+			return False
+
 		chapterName = paragraphs[chapterHeadingIndex]
 		chapterTemplateVars['%chapter'] = chapterName
 
