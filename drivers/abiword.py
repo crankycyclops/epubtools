@@ -267,7 +267,7 @@ class Abiword(driver.Driver):
 			if bool == type(chapterHeadingIndex):
 
 				if len(re.compile('<p>(.*?)</p>').sub(r'\1', paragraphs[i]).strip()) > 0:
-					print(paragraphs[i])
+
 					# Strip out tags and newlines from the chapter heading
 					paragraphs[i] = re.compile(r'<[^>]+>').sub('', paragraphs[i]).replace('\n', '').strip()
 					chapterTemplateVars['%slugChapter'] = 'ch' + invalidSlugCharsRegex.sub('', paragraphs[i])
