@@ -12,6 +12,7 @@ class Abiword(driver.Driver):
 	# Note that order is important here!
 	specialChars = collections.OrderedDict()
 
+	specialChars["&"]        = ""         # get rid of these
 	specialChars["''"]       = "&#8221;"   #rdquo
 	specialChars["\\'{a}"]   = "&#225;"    #Acute accented a
 	specialChars["\\'{e}"]   = "&#233;"    #Acute accented e
@@ -49,10 +50,13 @@ class Abiword(driver.Driver):
 	specialChars["®"]        = "&#174;"   #reg
 	specialChars["\$"]       = "$"        # Dollar sign
 	specialChars["\&"]       = "&#38;"    #ampersand
-	#specialChars["\{"]       = "&#123;"   #left brace (entity prevents regex conflict later)
-	#specialChars["\}"]       = "&#125;"   #right brace (entity prevents regex conflict later)
+	specialChars["\{"]       = "&#123;"   #left brace (entity prevents regex conflict later)
+	specialChars["\}"]       = "&#125;"   #right brace (entity prevents regex conflict later)
 	specialChars["--"]       = "&#8211;"  #ndash
 	specialChars["\\\\"]     = "<br />"   #Line break
+	specialChars["<"]        = "&#60;"    #lt
+	specialChars["="]        = "&#61;"    #equal
+	specialChars[">"]        = "&#62;"    #gt
 
 	##########################################################################
 
@@ -120,6 +124,18 @@ class Abiword(driver.Driver):
 		# First, extract out each paragraph
 		lines = inputText.split('\n')
 		for i in range(0, len(lines)):
+
+			# Replace common Latex entities with XHTML entities (this won't catch
+			# everything.) This goes here because it should happen before we
+			# enclose the line in <p> tags.
+			for char in self.specialChars.keys():
+				lines[i] = lines[i].replace(char, self.specialChars[char])
+
+			# Hack: this is dumb, but I can't figure out why some <br /> tags
+			# are having their < and > values changed to entities, so I'm just
+			# going to be lazy here and fix what gets changed rather than dig
+			# and figure out what I did wrong ;)
+			lines[i] = lines[i].replace('&#60;br /&#62;', '<br />')
 
 			if inParagraph:
 
@@ -200,13 +216,6 @@ class Abiword(driver.Driver):
 		hypertargetBrokenRegex2 = re.compile('}(.*?)\\\\hypertarget{.*?}{')
 		hypertargetBrokenRegex3 = re.compile('(.*?)\\\\hypertarget{.*?}{')
 
-		# These are a best guess in an attempt to clean up Abiword's mess in the
-		# case where, for whatever reason, it doesn't properly balance curly
-		# braces. I'm replacing instances of \{ and \} in the latex with numeric
-		# entities rather than brace characters directly to avoid a conflict here.
-		braceFixRegex1 = re.compile('(<p>[^{]+?)}</p>')
-		braceFixRegex2 = re.compile('<p>{([^}]+?</p>)')
-
 		# Detects Latex commands we don't recognize and attempts to silently
 		# strip them out (perhaps a dirty trick, but it results in cleaner output)
 		catchAllRegex = re.compile('\\\\[A-Za-z]+({.*?})*')
@@ -224,16 +233,6 @@ class Abiword(driver.Driver):
 		chapterHeadingIndex = False
 
 		for i in range(0, len(paragraphs)):
-
-			# If it's a plain text block instead of a marked paragraph, make sure
-			# to strip out the last line break
-			if '<br />' in paragraphs[i]:
-				paragraphs[i] = paragraphs[i][:-11]
-				paragraphs[i] += '</p>'
-
-			# Replace common Latex entities with XHTML entities (this won't catch everything)
-			for char in self.specialChars.keys():
-				paragraphs[i] = paragraphs[i].replace(char, self.specialChars[char])
 
 			# Strip out other font-related stuff
 			paragraphs[i] = textSizeRegex.sub(r'\2', paragraphs[i])
@@ -256,12 +255,6 @@ class Abiword(driver.Driver):
 			paragraphs[i] = hypertargetBrokenRegex3.sub(r'\1', paragraphs[i])
 			paragraphs[i] = hypertargetRegex.sub(r'\1', paragraphs[i])
 
-			# Attempt an imperfect fix for Abiword f**kery (Not sure if these
-			# are still necessary since I fixed the \newpage in the middle of a
-			# paragraph issue...)
-			paragraphs[i] = braceFixRegex1.sub(r'\1</p>', paragraphs[i])
-			paragraphs[i] = braceFixRegex2.sub(r'<p>\1', paragraphs[i])
-
 			# Though the markers I'm using to identify the beginning of
 			# paragraphs are valid, there may be more than one, because
 			# they're really used for formatting. So if there're more than
@@ -269,9 +262,21 @@ class Abiword(driver.Driver):
 			paragraphs[i] = beginParagraphRegex.sub('', paragraphs[i])
 			paragraphs[i] = endParagraphRegex.sub('', paragraphs[i])
 
-			# Finally, strip out any lingering Latex commands we don't recognize
+			# Strip out any lingering Latex commands we don't recognize
 			while re.search(catchAllRegex, paragraphs[i]):
 				paragraphs[i] = re.sub(catchAllRegex, '', paragraphs[i])
+
+			# All user-input braces have already been converted to numeric
+			# entities, so any lingering braces should be filtered out of the
+			# result.
+			paragraphs[i] = paragraphs[i].replace('{', '')
+			paragraphs[i] = paragraphs[i].replace('}', '')
+
+			# If it's a plain text block instead of a marked paragraph, make sure
+			# to strip out the last line break
+			if '<br />' in paragraphs[i]:
+				paragraphs[i] = paragraphs[i][:-11]
+				paragraphs[i] += '</p>'
 
 			# Wait for the first non-empty line, and use it as the chapter heading
 			if bool == type(chapterHeadingIndex):
