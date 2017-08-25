@@ -168,10 +168,10 @@ class Abiword(driver.Driver):
 					inParagraph = True
 					inPlainText = True
 
-		# We should only get here if the entire chapter is one long plain text
-		# block, in which case we need to treat that whole thing as a single
-		# paragraph
-		if inParagraph and inPlainText:
+		# We get here if the entire chapter is one long plain text block, or if
+		# a \newpage was encountered in the middle of a paragraph and is thus
+		# not properly terminated.
+		if inParagraph:
 			paragraphs.append('<p>' + nextParagraph + '</p>')
 			nextParagraph = ''
 			inParagraph = False
@@ -326,17 +326,45 @@ class Abiword(driver.Driver):
 
 		for i in range(0, len(texLines)):
 
+			# Skip latex comments
+			if '%' == texLines[i]:
+				continue
+
 			# Chapter break; process the next chapter
 			if '\\newpage' in texLines[i]:
 
 				# So, Abiword sometimes places \newpage in the middle of a block,
-				# causing f**kery for the next chapter. We need to massage the
-				# text a little to undo this before continuing.
-				newPagePrefixRegex = re.compile('^(\s*\{.*?)\\\\newpage')
-				if re.match(newPagePrefixRegex, texLines[i]):
-					prefix = newPagePrefixRegex.search(texLines[i]).group(1)
-					if i + 1 < len(texLines):
-						texLines[i + 1] = prefix + texLines[i + 1]
+				# causing f**kery for both the current and the next chapter. We
+				# need to massage the text a little to undo this before continuing.
+				# This probably isn't Abiword's fault, but rather the fault of
+				# the word processor for poorly formatting the document.
+				if 0 != texLines[i].index('\\newpage'):
+
+					prefix = texLines[i][0:texLines[i].index('\\newpage')]
+
+					# First, make sure braces are balanced in what we have to
+					# append to the current chapter.
+					braces = []
+
+					for j in range(0, len(prefix)):
+						if '{' == prefix[j]:
+							braces.append(j)
+						elif '}' == prefix[j]:
+							braces.pop()
+
+					if len(braces):
+						for j in braces:
+							prefix += '}'
+
+					chapterText += prefix
+
+					# Next, make sure there's always a complete paragraph and
+					# balanced parenthesis in the part we have to prepend to the
+					# next chapter.
+					if '}' == texLines[i + 1][0]:
+						texLines[i + 1] = '\\begin{spacing}{1.67}'
+					else:
+						texLines[i + 1] = '{' + texLines[i + 1]
 
 				self.processChapter(chapterText)
 				chapterText = ''; # Reset inputText for the next chapter
