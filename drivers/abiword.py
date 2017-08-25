@@ -280,7 +280,6 @@ class Abiword(driver.Driver):
 
 					# Strip out tags and newlines from the chapter heading
 					paragraphs[i] = re.compile(r'<[^>]+>').sub('', paragraphs[i]).replace('\n', '').strip()
-					chapterTemplateVars['%slugChapter'] = 'ch' + invalidSlugCharsRegex.sub('', paragraphs[i])
 					chapterHeadingIndex = i
 
 				continue
@@ -291,25 +290,28 @@ class Abiword(driver.Driver):
 
 		# We had only empty paragraphs in the whole chapter, so obviously this
 		# shouldn't be counted as a chapter at all.
-		if '%slugChapter' not in chapterTemplateVars.keys():
+		if bool == type(chapterHeadingIndex):
 			return False
 
 		chapterName = paragraphs[chapterHeadingIndex]
 		chapterTemplateVars['%chapter'] = chapterName
 
-		chapterTemplate = open(self.scriptPath + '/templates/chapter.xhtml', 'r').read()
-		for var in chapterTemplateVars.keys():
-			chapterTemplate = chapterTemplate.replace(var, chapterTemplateVars[var])
-
+		# Create a unique slug to identify the chapter
 		chapterSlug = invalidSlugCharsRegex.sub('', chapterName)
+
 		if len(chapterSlug) > 15:
 			chapterSlug = chapterSlug[:15];
 
-		# make sure we always have a unique slug
 		if chapterSlug in self.chapterSlugs.keys():
 			self.chapterSlugs[chapterSlug] = self.chapterSlugs[chapterSlug] + 1
 		else:
 			self.chapterSlugs[chapterSlug] = 1
+
+		chapterTemplateVars['%slugChapter'] = 'ch' + chapterSlug
+
+		chapterTemplate = open(self.scriptPath + '/templates/chapter.xhtml', 'r').read()
+		for var in chapterTemplateVars.keys():
+			chapterTemplate = chapterTemplate.replace(var, chapterTemplateVars[var])
 
 		return {
 			'chapter': chapterName,
