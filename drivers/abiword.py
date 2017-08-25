@@ -207,6 +207,10 @@ class Abiword(driver.Driver):
 		braceFixRegex1 = re.compile('(<p>[^{]+?)}</p>')
 		braceFixRegex2 = re.compile('<p>{([^}]+?</p>)')
 
+		# Detects Latex commands we don't recognize and attempts to silently
+		# strip them out (perhaps a dirty trick, but it results in cleaner output)
+		catchAllRegex = re.compile('\\\\[A-Za-z]+({.*?})*')
+
 		invalidSlugCharsRegex = re.compile('[^a-zA-Z0-9]')
 
 		chapterTemplateVars = {
@@ -252,7 +256,9 @@ class Abiword(driver.Driver):
 			paragraphs[i] = hypertargetBrokenRegex3.sub(r'\1', paragraphs[i])
 			paragraphs[i] = hypertargetRegex.sub(r'\1', paragraphs[i])
 
-			# Attempt an imperfect fix for Abiword f**kery
+			# Attempt an imperfect fix for Abiword f**kery (Not sure if these
+			# are still necessary since I fixed the \newpage in the middle of a
+			# paragraph issue...)
 			paragraphs[i] = braceFixRegex1.sub(r'\1</p>', paragraphs[i])
 			paragraphs[i] = braceFixRegex2.sub(r'<p>\1', paragraphs[i])
 
@@ -262,6 +268,10 @@ class Abiword(driver.Driver):
 			# one left behind, we should remove them.
 			paragraphs[i] = beginParagraphRegex.sub('', paragraphs[i])
 			paragraphs[i] = endParagraphRegex.sub('', paragraphs[i])
+
+			# Finally, strip out any lingering Latex commands we don't recognize
+			while re.search(catchAllRegex, paragraphs[i]):
+				paragraphs[i] = re.sub(catchAllRegex, '', paragraphs[i])
 
 			# Wait for the first non-empty line, and use it as the chapter heading
 			if bool == type(chapterHeadingIndex):
