@@ -328,6 +328,16 @@ class Abiword(driver.Driver):
 
 			# Chapter break; process the next chapter
 			if '\\newpage' in texLines[i]:
+
+				# So, Abiword sometimes places \newpage in the middle of a block,
+				# causing f**kery for the next chapter. We need to massage the
+				# text a little to undo this before continuing.
+				newPagePrefixRegex = re.compile('^(\s*\{.*?)\\\\newpage')
+				if re.match(newPagePrefixRegex, texLines[i]):
+					prefix = newPagePrefixRegex.search(texLines[i]).group(1)
+					if i + 1 < len(texLines):
+						texLines[i + 1] = prefix + texLines[i + 1]
+
 				self.processChapter(chapterText)
 				chapterText = ''; # Reset inputText for the next chapter
 
