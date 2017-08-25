@@ -12,7 +12,7 @@ class Abiword(driver.Driver):
 	# Note that order is important here!
 	specialChars = collections.OrderedDict()
 
-	specialChars["&"]        = ""         # get rid of these
+	specialChars["&"]        = ""          # get rid of these
 	specialChars["''"]       = "&#8221;"   #rdquo
 	specialChars["\\'{a}"]   = "&#225;"    #Acute accented a
 	specialChars["\\'{e}"]   = "&#233;"    #Acute accented e
@@ -38,25 +38,25 @@ class Abiword(driver.Driver):
 	specialChars["\\`{O}"]   = "&#210;"    #Grave accented O
 	specialChars["\\`{U}"]   = "&#217;"    #Grave accented U
 	specialChars["\\`{Y}"]   = "&#7922;"   #Grave accented Y
-	specialChars["'"]        = "&#8217;"  #rsquo
-	specialChars["\\~{n}"]   = "&#241;"   #ntilde
-	specialChars["\\~{N}"]   = "&#209;"   #Ntilde
-	specialChars["{`}"]      = "&#8216;"  #lsquo
-	specialChars["{``}"]     = "&#8220;"  #ldquo
-	specialChars["\ldots{}"] = "&#8230;"  #hellip
-	specialChars["---"]      = "&#8212;"  #mdash
-	specialChars["™"]        = "&#8482;"  #trade
-	specialChars["©"]        = "&#169;"   #copy
-	specialChars["®"]        = "&#174;"   #reg
-	specialChars["\$"]       = "$"        # Dollar sign
-	specialChars["\&"]       = "&#38;"    #ampersand
-	specialChars["\{"]       = "&#123;"   #left brace (entity prevents regex conflict later)
-	specialChars["\}"]       = "&#125;"   #right brace (entity prevents regex conflict later)
-	specialChars["--"]       = "&#8211;"  #ndash
-	specialChars["\\\\"]     = "<br />"   #Line break
-	specialChars["<"]        = "&#60;"    #lt
-	specialChars["="]        = "&#61;"    #equal
-	specialChars[">"]        = "&#62;"    #gt
+	specialChars["'"]        = "&#8217;"   #rsquo
+	specialChars["\\~{n}"]   = "&#241;"    #ntilde
+	specialChars["\\~{N}"]   = "&#209;"    #Ntilde
+	specialChars["{`}"]      = "&#8216;"   #lsquo
+	specialChars["{``}"]     = "&#8220;"   #ldquo
+	specialChars["\ldots{}"] = "&#8230;"   #hellip
+	specialChars["---"]      = "&#8212;"   #mdash
+	specialChars["™"]        = "&#8482;"   #trade
+	specialChars["©"]        = "&#169;"    #copy
+	specialChars["®"]        = "&#174;"    #reg
+	specialChars["\$"]       = "$"         #Dollar sign
+	specialChars["\&"]       = "&#38;"     #ampersand
+	specialChars["\{"]       = "&#123;"    #left brace (entity prevents regex conflict later)
+	specialChars["\}"]       = "&#125;"    #right brace (entity prevents regex conflict later)
+	specialChars["--"]       = "&#8211;"   #ndash
+	specialChars["\\\\"]     = "<br />"    #Line break
+	specialChars["<"]        = "&#60;"     #lt
+	specialChars["="]        = "&#61;"     #equal
+	specialChars[">"]        = "&#62;"     #gt
 
 	##########################################################################
 
@@ -301,8 +301,9 @@ class Abiword(driver.Driver):
 		chapterName = paragraphs[chapterHeadingIndex]
 		chapterTemplateVars['%chapter'] = chapterName
 
-		# Create a unique slug to identify the chapter
-		chapterSlug = invalidSlugCharsRegex.sub('', chapterName)
+		# Create a unique slug to identify the chapter (extra regex strips out
+		# entities.)
+		chapterSlug = invalidSlugCharsRegex.sub('', re.compile('&#\d+;').sub('', chapterName))
 
 		if len(chapterSlug) > 15:
 			chapterSlug = chapterSlug[:15];
