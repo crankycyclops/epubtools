@@ -204,7 +204,7 @@ class Scrivener(driver.Driver):
 
 			# Chapters might be organized into further subdirectories; don't miss them!
 			if (os.path.isdir(inputPath + '/' + filename)):
-				self.processChaptersList(inputPath + '/' + filename, os.listdir(inputPath + '/' + filename))
+				self.processChaptersList(inputPath + '/' + filename, util.natural_sort(os.listdir(inputPath + '/' + filename)))
 
 			else:
 
