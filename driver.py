@@ -8,22 +8,16 @@ import util
 class Driver(object):
 
 	__metaclass__ = ABCMeta
-
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
-
-	# A list of input chapters in need of processing. Each driver is responsible
-	# for implementing this in its own way. Ordinarily this will be set in
-	# self.openDriver().
-	chaptersList = False
-
-	# List of chapters processed. Used to create the manifest.
-	chapterLog = []
 
 	##########################################################################
 
 	# Constructor
 	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate,
 	copyrightYear, includeCopyright, isFiction, coverPath, tmpLocation = '/tmp'):
+
+		# List of chapters processed. Used to create the manifest.
+		self.chapterLog = []
 
 		self.bookLang = bookLang
 		if not self.bookLang:
@@ -300,7 +294,7 @@ class Driver(object):
 			raise Exception('Failed to read container.xml template.')
 
 		# Process chapters
-		self.processChaptersList(self.inputPath, self.chaptersList)
+		self.processChaptersList(self.inputPath)
 		self.initChaptersTemplateVars()
 
 		# Write out filled-in templates
