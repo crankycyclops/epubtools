@@ -66,6 +66,9 @@ class Driver(object):
 		self.uid = str(binascii.hexlify(os.urandom(16))).replace("'", '')[1:]
 		self.tmpOutputDir = self.tmpLocation + '/' + self.uid
 
+		# Used to enumerate chapter files
+		self.curChapterIndex = 1
+
 		# Setup template variables
 		self.initTemplateVars()
 
@@ -232,6 +235,55 @@ class Driver(object):
 
 	##########################################################################
 
+	# Returns the beginning of a chapter XHTML file.
+	def _getXHTMLHeader(self, sectionType, chapterHeading):
+
+		# TODO: should xml:lang be set to whichever language the e-book is in,
+		# and if so, how do I map that value?
+		XHTMLHead  = '<?xml version="1.0" encoding="UTF-8"?>\n'
+		XHTMLHead += '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:epub="http://www.idpf.org/2007/ops">\n\n'
+
+		XHTMLHead += '\t<head>\n'
+		XHTMLHead += '\t\t<meta charset="utf-8" />\n'
+		XHTMLHead += '\t\t<title>' + self.bookTitle + '</title>\n'
+		XHTMLHead += '\t\t<link rel="stylesheet" href="style.css" type="text/css" />\n'
+		XHTMLHead += '\t</head>\n\n'
+
+		XHTMLHead += '\t<body>\n\n'
+		XHTMLHead += '\t\t<!-- An EPUB 3 feature that degrades harmlessly in EPUB 2 -->\n'
+		XHTMLHead += '\t\t<section epub:type="bodymatter '+ sectionType + '">\n\n'
+
+		XHTMLHead += '\t\t\t<header>\n'
+		XHTMLHead += '\t\t\t\t<h1>' + chapterHeading + '</h1>\n'
+		XHTMLHead += '\t\t\t</header>\n\n'
+
+		return XHTMLHead
+
+	##########################################################################
+
+	# Returns the end of a chapter XHTML file.
+	def _getXHTMLFooter(self):
+
+		XHTMLFoot  = '\t\t</section>\n\n'
+		XHTMLFoot += '\t</body>\n\n'
+		XHTMLFoot += '</html>'
+
+		return XHTMLFoot
+
+	##########################################################################
+
+	# Defines a part of the book underwhich a group of chapters fall into.
+	def processPart(self, partName):
+
+		chapterFilename = self.tmpOutputDir + '/OEBPS/' + str(self.curChapterIndex).zfill(3) + '_' + re.compile('[^a-zA-Z0-9]').sub('', partName) + '.xhtml'
+		outputXHTML  = self._getXHTMLHeader('part', partName)
+		outputXHTML += self._getXHTMLFooter()
+
+		open(chapterFilename, 'w').write(outputXHTML)
+		self.curChapterIndex = self.curChapterIndex + 1
+
+	##########################################################################
+
 	# Frontend for transformation of a chapter into an ePub-friendly format.
 	# Calls self.transform. Caller must be prepared to catch exceptions.
 	def processChapter(self, inputText):
@@ -239,12 +291,13 @@ class Driver(object):
 		chapterXHTML = self.transformChapter(inputText)
 
 		if chapterXHTML:
-			chapterFilename = self.tmpOutputDir + '/OEBPS/' + chapterXHTML['chapterSlug'] + '.xhtml'
+			chapterFilename = self.tmpOutputDir + '/OEBPS/' + str(self.curChapterIndex).zfill(3) + '_' + chapterXHTML['chapterSlug'] + '.xhtml'
 			open(chapterFilename, 'w').write(chapterXHTML['text'])
 			self.chapterLog.append({
 				'chapter': chapterXHTML['chapter'],
 				'chapterSlug': chapterXHTML['chapterSlug']
 			})
+			self.curChapterIndex = self.curChapterIndex + 1
 
 	##########################################################################
 

@@ -237,33 +237,14 @@ class Scrivener(driver.Driver):
 		self.domTree.openString(inputText)
 		self.domTree.parse()
 
-		# TODO: should xml:lang be set to whichever language the e-book is in,
-		# and if so, how do I map that value?
-		outputXHTML  = '<?xml version="1.0" encoding="UTF-8"?>\n'
-		outputXHTML += '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:epub="http://www.idpf.org/2007/ops">\n\n'
-
-		outputXHTML += '\t<head>\n'
-		outputXHTML += '\t\t<meta charset="utf-8" />\n'
-		outputXHTML += '\t\t<title>' + self.bookTitle + '</title>\n'
-		outputXHTML += '\t\t<link rel="stylesheet" href="style.css" type="text/css" />\n'
-		outputXHTML += '\t</head>\n\n'
-
-		outputXHTML += '\t<body>\n\n'
-		outputXHTML += '\t\t<section epub:type="bodymatter chapter">\n\n'
-
-		outputXHTML += '\t\t\t<header>\n'
-		outputXHTML += '\t\t\t\t<h1>' + chapterHeading + '</h1>\n'
-		outputXHTML += '\t\t\t</header>\n\n'
-
+		outputXHTML = self._getXHTMLHeader('chapter', chapterHeading)
 		outputXHTML += '\t\t\t<div id="' + bodyDivId + '">\n\n'
 
 		for paragraph in self.domTree.rootNode.children:
 			outputXHTML += '\t\t\t\t<p>' + self.__parseRTFDOMParagraph(paragraph) + '</p>\n'
 
+		outputXHTML += self._getXHTMLFooter()
 		outputXHTML += '\n\t\t\t</div>\n\n'
-		outputXHTML += '\t\t</section>\n\n'
-		outputXHTML += '\t</body>\n\n'
-		outputXHTML += '</html>'
 
 		return {
 			'chapter': chapterHeading,
@@ -331,6 +312,6 @@ class Scrivener(driver.Driver):
 			elif 'Folder' == binderItem.attrib['Type']:
 				if 0 == depth:
 					print('Processing Part "' + chapterTitle + '"...')
-					#self.processPart(chapterTitle): TODO: implement support for parts
+					self.processPart(chapterTitle)
 				self.processChaptersList(inputPath, binderItem.find('Children'), depth + 1)
 
