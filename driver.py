@@ -10,6 +10,9 @@ class Driver(object):
 	__metaclass__ = ABCMeta
 	scriptPath = os.path.dirname(os.path.realpath(__file__))
 
+	# A regex that defines valid characters for a chapter or part ID
+	invalidIdCharsRegex = re.compile('[^a-zA-Z0-9]')
+
 	##########################################################################
 
 	# Constructor
@@ -18,6 +21,11 @@ class Driver(object):
 
 		# List of chapters processed. Used to create the manifest.
 		self.chapterLog = []
+
+		# Points to the root of the table of contents unless adding a part to
+		# the book which will itself contain chapters, and determines where in
+		# the TOC a chapter will be listed.
+		self.curTOCPart = self.chapterLog
 
 		self.bookLang = bookLang
 		if not self.bookLang:
@@ -117,14 +125,65 @@ class Driver(object):
 
 	##########################################################################
 
+	# Helper function that populates the template variable for the list of
+	# chapters in the OPF and toc.ncx.
+	def _insertChaptersIntoOPFAndTocNcx(self, playOrder, navmap, chapterList = None, tocTabs = '\t\t\t\t\t'):
+
+		# Always start at the root
+		if not chapterList:
+			chapterList = self.chapterLog
+
+		chapterManifestEntries = ''
+		chapterSpineEntries = ''
+		chapterTocEntries = ''
+
+		for chapter in chapterList:
+
+			chapterId = 'ch' + chapter['chapterSlug'] + str(chapter['chapterIndex']).zfill(3)
+			chapterFilename = str(chapter['chapterIndex']).zfill(3) + '_' + chapter['chapterSlug'] + '.xhtml'
+			chapterManifestEntries = chapterManifestEntries + '\t\t<item id="' + chapterId + '" media-type="application/xhtml+xml" href="' + chapterFilename + '" />\n'
+			chapterSpineEntries = chapterSpineEntries + '\t\t<itemref idref="' + chapterId + '" linear="yes" />\n'
+
+			chapterTocEntries = chapterTocEntries + tocTabs + '<li>\n'
+			chapterTocEntries = chapterTocEntries + tocTabs + '\t<a href="' + chapterFilename + '">' + chapter['chapter'] + '</a>\n'
+
+			# If we're inside of a part and need to process the chapters that
+			# are inside, do so now.
+			if chapter['children']:
+				subChapterResults = self._insertChaptersIntoOPFAndTocNcx(playOrder, navmap, chapter['children'], tocTabs + '\t\t')
+				playOrder = subChapterResults['playOrder']
+				navmap = subChapterResults['navmap']
+				chapterManifestEntries = chapterManifestEntries + subChapterResults['chapterManifestEntries']
+				chapterSpineEntries = chapterSpineEntries + subChapterResults['chapterSpineEntries']
+				chapterTocEntries = chapterTocEntries + tocTabs + '\t<ol style="list-style-type: none;">\n' + subChapterResults['chapterTocEntries'] + tocTabs + '\t</ol>\n'
+
+			chapterTocEntries = chapterTocEntries + tocTabs + '</li>\n'
+
+			navmap = (
+				navmap + '\n\t\t<navPoint id="ch' + chapter['chapterSlug'] +
+				str(chapter['chapterIndex']).zfill(3) +
+				'" playOrder="' + str(playOrder) + '">\n' +
+				'\t\t\t<navLabel>\n\t\t\t\t<text>\n\t\t\t\t\t' + chapter['chapter'] + '\n\t\t\t\t</text>\n' +
+				'\t\t\t</navLabel>\n\t\t\t<content src="' + chapterFilename + '" />\n\t\t</navPoint>\n'
+			)
+
+			playOrder += 1
+
+		return {
+			'chapterManifestEntries': chapterManifestEntries,
+			'chapterSpineEntries': chapterSpineEntries,
+			'chapterTocEntries': chapterTocEntries,
+			'navmap': navmap,
+			'playOrder': playOrder
+		}
+
+	##########################################################################
+
 	# Similiar to initTemplateVars, except that these variables depend on the
 	# chapters having been processed first, which means we can't call this
 	# in the constructor like we can in the other.
 	def initChaptersTemplateVars(self):
 
-		chapterManifestEntries = ''
-		chapterSpineEntries = ''
-		chapterTocEntries = ''
 		navmap = ''
 		playOrder = 2;
 
@@ -145,26 +204,14 @@ class Driver(object):
 		)
 		playOrder += 1
 
-		for chapter in self.chapterLog:
+		# Insert chapters into the OPF and toc.ncx chapter list variables.
+		chapterEntries = self._insertChaptersIntoOPFAndTocNcx(playOrder, navmap)
 
-			chapterId = 'ch' + chapter['chapterSlug']
-			chapterFilename = chapter['chapterSlug'] + '.xhtml'
-			chapterManifestEntries = chapterManifestEntries + '\t\t<item id="' + chapterId + '" media-type="application/xhtml+xml" href="' + chapterFilename + '" />\n'
-			chapterSpineEntries = chapterSpineEntries + '\t\t<itemref idref="' + chapterId + '" linear="yes" />\n'
-			chapterTocEntries = chapterTocEntries + '\t\t\t\t\t<li><a href="' + chapterFilename + '">' + chapter['chapter'] + '</a></li>\n'
-			navmap = (
-				navmap + '\n\t\t<navPoint id="ch' + chapter['chapterSlug'] +
-				'" playOrder="' + str(playOrder) + '">\n' +
-				'\t\t\t<navLabel>\n\t\t\t\t<text>\n\t\t\t\t\t' + chapter['chapter'] + '\n\t\t\t\t</text>\n' +
-				'\t\t\t</navLabel>\n\t\t\t<content src="' + chapterFilename + '" />\n\t\t</navPoint>\n'
-			)
-			playOrder += 1
-
-		self.templateVars['%chapterManifestEntries'] = chapterManifestEntries
-		self.templateVars['%chapterSpineEntries'] = chapterSpineEntries
-		self.templateVars['%chapterTocEntries'] = chapterTocEntries
-		self.templateVars['%navmap'] = navmap
-		self.templateVars['%firstChapterFilename'] = self.chapterLog[0]['chapterSlug'] + '.xhtml'
+		self.templateVars['%chapterManifestEntries'] = chapterEntries['chapterManifestEntries']
+		self.templateVars['%chapterSpineEntries'] = chapterEntries['chapterSpineEntries']
+		self.templateVars['%chapterTocEntries'] = chapterEntries['chapterTocEntries']
+		self.templateVars['%navmap'] = chapterEntries['navmap']
+		self.templateVars['%firstChapterFilename'] = str(self.chapterLog[0]['chapterIndex']).zfill(3) + '_' + self.chapterLog[0]['chapterSlug'] + '.xhtml'
 
 	##########################################################################
 
@@ -280,7 +327,29 @@ class Driver(object):
 		outputXHTML += self._getXHTMLFooter()
 
 		open(chapterFilename, 'w').write(outputXHTML)
+
+		# Add the part to the table of contents and update self.curPart so that
+		# new chapters, assuming they're inside this part, will be added to it
+		# instead of to the root of the table of contents.
+		curChapter = {
+			'chapter': partName,
+			'chapterSlug': self.invalidIdCharsRegex.sub('', partName),
+			'chapterIndex': self.curChapterIndex,
+			'children': []
+		}
+
 		self.curChapterIndex = self.curChapterIndex + 1
+		self.chapterLog.append(curChapter)
+		self.curTOCPart = curChapter['children']
+
+	##########################################################################
+
+	# If we're currently inside the part of a book and later need to add a
+	# chapter that's outside of it to the table of contents, we need to call
+	# this first.
+	def closeCurrentPart(self):
+
+		self.curTOCPart = self.chapterLog
 
 	##########################################################################
 
@@ -293,9 +362,11 @@ class Driver(object):
 		if chapterXHTML:
 			chapterFilename = self.tmpOutputDir + '/OEBPS/' + str(self.curChapterIndex).zfill(3) + '_' + chapterXHTML['chapterSlug'] + '.xhtml'
 			open(chapterFilename, 'w').write(chapterXHTML['text'])
-			self.chapterLog.append({
+			self.curTOCPart.append({
 				'chapter': chapterXHTML['chapter'],
-				'chapterSlug': chapterXHTML['chapterSlug']
+				'chapterSlug': chapterXHTML['chapterSlug'],
+				'chapterIndex': chapterXHTML['chapterIndex'],
+				'children': None
 			})
 			self.curChapterIndex = self.curChapterIndex + 1
 

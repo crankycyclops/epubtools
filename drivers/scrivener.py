@@ -191,7 +191,7 @@ class Scrivener(driver.Driver):
 
 				# Empty paragraph
 				elif 0 == depth and 1 == len(child.parent.children):
-					paragraphText += '&nbsp;'
+					paragraphText += '&#160;' # &#160; == &nbsp;
 
 			else:
 
@@ -230,8 +230,7 @@ class Scrivener(driver.Driver):
 		inputText = inputText[inputText.find('\n') + 1:]
 
 		# Add a DIV tag with the chapter's ID
-		invalidIdCharsRegex = re.compile('[^a-zA-Z0-9]')
-		bodyDivId = 'ch' + invalidIdCharsRegex.sub('', chapterHeading)
+		bodyDivId = 'ch' + self.invalidIdCharsRegex.sub('', chapterHeading)
 
 		# Parse the RTF into a DOM-like structure
 		self.domTree.openString(inputText)
@@ -243,12 +242,13 @@ class Scrivener(driver.Driver):
 		for paragraph in self.domTree.rootNode.children:
 			outputXHTML += '\t\t\t\t<p>' + self.__parseRTFDOMParagraph(paragraph) + '</p>\n'
 
-		outputXHTML += self._getXHTMLFooter()
 		outputXHTML += '\n\t\t\t</div>\n\n'
+		outputXHTML += self._getXHTMLFooter()
 
 		return {
 			'chapter': chapterHeading,
-			'chapterSlug': invalidIdCharsRegex.sub('', chapterHeading),
+			'chapterSlug': self.invalidIdCharsRegex.sub('', chapterHeading),
+			'chapterIndex': self.curChapterIndex,
 			'text': outputXHTML
 		}
 
@@ -291,6 +291,13 @@ class Scrivener(driver.Driver):
 		for binderItem in parentNode:
 
 			chapterTitle = binderItem.find('Title').text
+
+			# Make sure root chapters always show up in the root of the table of
+			# contents. Without this line of code, if there's a previously
+			# processed part, the chapter will be added to it even if the chapter
+			# is supposed to be outside of it.
+			if 0 == depth and ('Text' == binderItem.attrib['Type'] or 'Folder' == binderItem.attrib['Type']):
+				self.closeCurrentPart()
 
 			# Chapter
 			if 'Text' == binderItem.attrib['Type']:

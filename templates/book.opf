@@ -9,7 +9,8 @@
 		<dc:publisher>%publisher</dc:publisher>
 		<dc:language>%lang</dc:language>
 
-		<dc:creator id="creator-1" opf:role="aut" opf:file-as="%autLastfirst">%author</dc:creator>
+		<dc:creator id="creator-1">%author</dc:creator>
+		<!-- <dc:creator id="creator-1" opf:role="aut" opf:file-as="%autLastfirst">%author</dc:creator> -->
 		<meta refines="#creator-1" property="file-as">%autLastfirst</meta>
 		<meta refines="#creator-1" property="role" scheme="marc:relators">aut</meta>
 
@@ -52,7 +53,7 @@
 
 		<reference type="cover" title="Cover" href="Cover.xhtml" />
 		<reference type="toc" title="Table of Contents" href="toc.xhtml" />
-		<reference type="text"  title="%title" href="%firstChapterFilename" />
+		<reference type="text" title="%title" href="%firstChapterFilename" />
 
 	</guide>
 
