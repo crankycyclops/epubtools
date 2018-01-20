@@ -239,8 +239,14 @@ class Scrivener(driver.Driver):
 		outputXHTML = self._getXHTMLHeader('chapter', chapterHeading)
 		outputXHTML += '\t\t\t<div id="' + bodyDivId + '">\n\n'
 
+		firstParagraph = True
 		for paragraph in self.domTree.rootNode.children:
-			outputXHTML += '\t\t\t\t<p>' + self.__parseRTFDOMParagraph(paragraph) + '</p>\n'
+			if firstParagraph:
+				openParagraph = '<p style="text-indent: 0;">'
+			else:
+				openParagraph = '<p>'
+			outputXHTML += '\t\t\t\t' + openParagraph + self.__parseRTFDOMParagraph(paragraph) + '</p>\n'
+			firstParagraph = False
 
 		outputXHTML += '\n\t\t\t</div>\n\n'
 		outputXHTML += self._getXHTMLFooter()

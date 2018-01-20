@@ -283,7 +283,7 @@ class Driver(object):
 	##########################################################################
 
 	# Returns the beginning of a chapter XHTML file.
-	def _getXHTMLHeader(self, sectionType, chapterHeading):
+	def _getXHTMLHeader(self, sectionType, chapterHeading, centerHeading = False):
 
 		# TODO: should xml:lang be set to whichever language the e-book is in,
 		# and if so, how do I map that value?
@@ -301,7 +301,10 @@ class Driver(object):
 		XHTMLHead += '\t\t<section epub:type="bodymatter '+ sectionType + '">\n\n'
 
 		XHTMLHead += '\t\t\t<header>\n'
-		XHTMLHead += '\t\t\t\t<h1>' + chapterHeading + '</h1>\n'
+		if centerHeading:
+			XHTMLHead += '\t\t\t\t<h1 style="text-align: center; margin-top: 20%;">' + chapterHeading + '</h1>\n'
+		else:
+			XHTMLHead += '\t\t\t\t<h1>' + chapterHeading + '</h1>\n'
 		XHTMLHead += '\t\t\t</header>\n\n'
 
 		return XHTMLHead
@@ -323,7 +326,7 @@ class Driver(object):
 	def processPart(self, partName):
 
 		chapterFilename = self.tmpOutputDir + '/OEBPS/' + str(self.curChapterIndex).zfill(3) + '_' + re.compile('[^a-zA-Z0-9]').sub('', partName) + '.xhtml'
-		outputXHTML  = self._getXHTMLHeader('part', partName)
+		outputXHTML  = self._getXHTMLHeader('part', partName, True)
 		outputXHTML += self._getXHTMLFooter()
 
 		open(chapterFilename, 'w').write(outputXHTML)
