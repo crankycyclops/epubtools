@@ -456,7 +456,7 @@ class Driver(object):
 			# test the e-book, but no cover has been designed yet.
 			if 'generate' == self.coverPath:
 				import shlex, subprocess
-				subprocess.check_call(shlex.split('convert -background black -size ' + str(GENERATED_COVER_WIDTH) + 'x' + str(GENERATED_COVER_HEIGHT) + ' -fill "#ff0080" -pointsize 72 -gravity center label:"' + self.bookTitle + '" ' + self.tmpOutputDir + '/OEBPS/Cover.jpg'))
+				subprocess.check_call(shlex.split('convert -background black -size ' + str(GENERATED_COVER_WIDTH) + 'x' + str(GENERATED_COVER_HEIGHT / 2) + ' -fill "#ffffff" -pointsize 110 -gravity center label:"' + self.bookTitle + '" -pointsize 60 label:"' + self.bookAuthor + '" -append ' + self.tmpOutputDir + '/OEBPS/Cover.jpg'))
 
 			else:
 				# TODO: actually do extensive validation of the image before just
