@@ -455,17 +455,26 @@ class Driver(object):
 			# This is useful if, say, you want to create an ARC or you want to
 			# test the e-book, but no cover has been designed yet.
 			if 'generate' == self.coverPath:
+
 				import shlex, subprocess
+
+				# Imagemagick is required to generate a cover, so make sure it exists
+				try:
+					subprocess.check_output(shlex.split('convert --version'))
+				except:
+					raise Exception('Imagemagick must be installed before you can generate a cover.')
+
 				subprocess.check_call(shlex.split('convert -background black -size ' + str(GENERATED_COVER_WIDTH) + 'x' + str(GENERATED_COVER_HEIGHT / 2) + ' -fill "#ffffff" -pointsize 110 -gravity center label:"' + self.bookTitle + '" -pointsize 60 label:"' + self.bookAuthor + '" -append ' + self.tmpOutputDir + '/OEBPS/Cover.jpg'))
 
+			# The user provided a cover image, so use it
 			else:
 				# TODO: actually do extensive validation of the image before just
 				# blindly copying it over ;)
 				shutil.copyfile(self.coverPath, self.tmpOutputDir + '/OEBPS/Cover.jpg')
 
-		except:
+		except Exception as e:
 
-			raise Exception('Could not copy cover.')
+			raise Exception('Could not copy or generate cover: ' + str(e))
 
 		# Finally, write the ePub file. Phew!
 		self.zipBook(outputFilename)
