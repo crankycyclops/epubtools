@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+# Dimensions for auto-generated covers
+GENERATED_COVER_WIDTH=1000
+GENERATED_COVER_HEIGHT=1600
+
 import shutil, re, os, binascii
 from abc import ABCMeta, abstractmethod
 
@@ -446,11 +450,21 @@ class Driver(object):
 		# Copy the cover (WARNING: should not exceed 1000 pixels in longest
 		# dimension to avoid crashing older e-readers.)
 		try:
-			# TODO: actually do extensive validation of the image before just
-			# blindly copying it over ;)
-			shutil.copyfile(self.coverPath, self.tmpOutputDir + '/OEBPS/Cover.jpg')
+
+			# If user specified that they wanted to generate a cover, do so here.
+			# This is useful if, say, you want to create an ARC or you want to
+			# test the e-book, but no cover has been designed yet.
+			if 'generate' == self.coverPath:
+				import shlex, subprocess
+				subprocess.check_call(shlex.split('convert -background black -size ' + str(GENERATED_COVER_WIDTH) + 'x' + str(GENERATED_COVER_HEIGHT) + ' -fill "#ff0080" -pointsize 72 -gravity center label:"' + self.bookTitle + '" ' + self.tmpOutputDir + '/OEBPS/Cover.jpg'))
+
+			else:
+				# TODO: actually do extensive validation of the image before just
+				# blindly copying it over ;)
+				shutil.copyfile(self.coverPath, self.tmpOutputDir + '/OEBPS/Cover.jpg')
 
 		except:
+
 			raise Exception('Could not copy cover.')
 
 		# Finally, write the ePub file. Phew!
