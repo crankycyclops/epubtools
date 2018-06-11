@@ -1,50 +1,42 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys, subprocess
+import sys, subprocess, argparse
 import util
 import drivers.scrivener
 
 ###############################################################################
 
-# Using print as a function requires Python 3
-if len(sys.argv) < 12 or len(sys.argv) > 13:
-	util.eprint("\nUsage: " + sys.argv[0] + " <input driver: doc | scriv> <input source: zip or dir> <output epub file> <book title> <author> <copyright year> <0 = no copyright page, 1 = include copyright page> <0 = is not fiction, 1 = is fiction> <lang> <publication date: YYYY-MM-DD> <path to cover image> [publisher name (author name used if blank)]\n")
-	sys.exit(1)
+# Python's argparse is spiffy. Seriously.
+parser = argparse.ArgumentParser(description='Convert a document into an e-book.', epilog='Copyright 2017 James Colannino.')
 
-# TODO: Command line argument processing is kind of lame right now...
-inputDriver = sys.argv[1].lower().capitalize()
-inputFilename = sys.argv[2]
-outputFilename = sys.argv[3]
-title = sys.argv[4]
-author = sys.argv[5]
-copyrightYear = sys.argv[6]
+parser.add_argument('-I', dest='INPUT_DRIVER', nargs=1, required=True, help='Driver that knows how to read your input document (required)')
+parser.add_argument('-O', dest='OUTPUT_DRIVER', nargs=1, default='epub', help='Default: epub')
+parser.add_argument('--title', dest='TITLE', nargs=1, required=True, help='Title of the book (required)')
+parser.add_argument('--author', dest='AUTHOR', nargs=1, required=True, help='Author of the book (required)')
+parser.add_argument('--publisher', dest='PUBNAME', nargs=1, help='Publisher of the book (if not set, the author name will be used)')
+parser.add_argument('--lang', dest='LANGUAGE', nargs=1, required=True, help='Language of the book (required, ex: en-US)')
+parser.add_argument('--copyrightYear', dest='YEAR', type=int, nargs=1, required=True, help='Copyright year in YYYY format (required)')
+parser.add_argument('--pubDate', dest='DATE', nargs=1, required=True, help='Publication date in YYYY-MM-DD format (required)')
+parser.add_argument('--coverPath', dest='COVER', nargs=1, required=True, help='Path to cover image (required, "generate" = generate a test cover)')
+parser.add_argument('--includeCopyright', action='store_true', default=True, help='Include copyright page (default)')
+parser.add_argument('--isFiction', action='store_true', default=True, help='Book is a work of fiction (default)')
+parser.add_argument('INPUT', help='Document input file (required)')
+parser.add_argument('OUTPUT', help='E-book output file (required)')
 
-if '1' == sys.argv[7]:
-	includeCopyright = True
-else:
-	includeCopyright = False
+args = parser.parse_args()
 
-if '1' == sys.argv[8]:
-	isFiction = True
-else:
-	isFiction = False
-
-lang = sys.argv[9] # Example: "en-US"
-pubDate = sys.argv[10] #Valid value: YYYY-MM-DD
-coverPath = sys.argv[11]
-
-if 13 == len(sys.argv):
-	publisher = sys.argv[12]
-else:
-	publisher = author
+# If no publisher name is set, default to the author's name instead
+if None == args.PUBNAME:
+	args.PUBNAME = args.AUTHOR
 
 # Attempt to load the specified driver and fail if the corresponding class
 #doesn't exist.
 try:
-	DriverClass = getattr(drivers, inputDriver)
-	driver = DriverClass(lang, publisher, author, title, pubDate,
-			copyrightYear, includeCopyright, isFiction, coverPath)
+	DriverClass = getattr(drivers, args.INPUT_DRIVER[0].lower().capitalize())
+	inputDriver = DriverClass(args.LANGUAGE[0], args.PUBNAME[0], args.AUTHOR[0],
+			args.TITLE[0], args.DATE[0], str(args.YEAR[0]), args.includeCopyright,
+			args.isFiction, args.COVER[0])
 
 except Exception as error:
 	util.eprint('\nDriver ' + inputDriver + ' is not supported.\n')
@@ -52,9 +44,9 @@ except Exception as error:
 
 # Create the e-book :)
 try:
-	driver.openInput(inputFilename)
-	driver.processBook(outputFilename)
-	driver.cleanup()
+	inputDriver.openInput(args.INPUT)
+	inputDriver.processBook(args.OUTPUT)
+	inputDriver.cleanup()
 	sys.exit(0)
 
 # Boo!
