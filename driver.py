@@ -379,18 +379,15 @@ class Driver(object):
 
 	##########################################################################
 
-	# Iterates through a list of chapters and runs processChapter on each.
+	# Iterates through all chapters, calling processChapter for each one.
 	@abstractmethod
-	def processChaptersList(self, inputPath, chapters):
+	def processChapters(self, inputPath):
 		pass
 
 	##########################################################################
 
 	# Main point of entry for processing files in an input directory and
-	# transforming them into an ePub. Provides a generic method that should
-	# work for any input source that contains one chapter per file. Anything
-	# more complicated will require the specific driver to implement its own
-	# version.
+	# transforming them into an ePub.
 	def processBook(self, outputFilename):
 
 		# Create the book's directory structure
@@ -425,7 +422,7 @@ class Driver(object):
 			raise Exception('Failed to read container.xml template.')
 
 		# Process chapters
-		self.processChaptersList(self.inputPath)
+		self.processChapters(self.inputPath)
 		self.initChaptersTemplateVars()
 
 		# Write out filled-in templates

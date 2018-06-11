@@ -159,7 +159,7 @@ class Scrivener(driver.Driver):
 
 	##########################################################################
 
-	# Utility function to recursively parse an RTFDOM paragraph node into Latex.
+	# Utility function to recursively parse an RTFDOM paragraph node into XHTML.
 	def __parseRTFDOMParagraph(self, paragraphNode, depth = 0):
 
 		# Strikethrough command relies on the inclusion of the 'ulem' package in
@@ -263,7 +263,7 @@ class Scrivener(driver.Driver):
 	# Iterates through a Scrivener project and runs processChapter on each
 	# contained chapter. Recursively enters project folders. The first folder,
 	# if it exists, will be treated as a part, a subdivision above chapter.
-	def processChaptersList(self, inputPath, parentNode = False, depth = 0):
+	def processChapters(self, inputPath, parentNode = False, depth = 0):
 
 		if not parentNode:
 
@@ -291,7 +291,7 @@ class Scrivener(driver.Driver):
 			# other things in other zero depth folders should be ignored.
 			for binderItem in parentNode.find('Binder').findall('BinderItem'):
 				if 'DraftFolder' == binderItem.attrib['Type']:
-					self.processChaptersList(inputPath, binderItem.find('Children'), depth)
+					self.processChapters(inputPath, binderItem.find('Children'), depth)
 					return
 
 		for binderItem in parentNode:
@@ -326,5 +326,5 @@ class Scrivener(driver.Driver):
 				if 0 == depth:
 					print('Processing Part "' + chapterTitle + '"...')
 					self.processPart(chapterTitle)
-				self.processChaptersList(inputPath, binderItem.find('Children'), depth + 1)
+				self.processChapters(inputPath, binderItem.find('Children'), depth + 1)
 

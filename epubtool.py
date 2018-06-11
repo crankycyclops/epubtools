@@ -30,6 +30,8 @@ args = parser.parse_args()
 if None == args.PUBNAME:
 	args.PUBNAME = args.AUTHOR
 
+###############################################################################
+
 # Attempt to load the specified driver and fail if the corresponding class
 #doesn't exist.
 try:
@@ -41,6 +43,8 @@ try:
 except Exception as error:
 	util.eprint('\nDriver ' + inputDriver + ' is not supported.\n')
 	sys.exit(3)
+
+###############################################################################
 
 # Create the e-book :)
 try:
