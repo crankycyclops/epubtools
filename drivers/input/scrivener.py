@@ -1,0 +1,235 @@
+# -*- coding: utf-8 -*-
+
+# TODO: see which of these modules I'm still using after refactor and remove
+# whichever I don't need.
+import re, os, zipfile, shutil, binascii
+import xml.etree.ElementTree as ET
+
+import util
+from driver import Driver
+
+from pyrtfdom.dom import RTFDOM
+from pyrtfdom import elements
+
+class Scrivener(Driver):
+
+	##########################################################################
+
+	# Scrivener footnotes are implemented internally as a special type of
+	# hyperlink field, so I need to override this field type (and possibly
+	# others in the future.)
+	def __registerCustomFieldDrivers(self):
+
+		# Override the hyperlink driver, since Scrivener projects use hyperlinks
+		# internally for comments and footnotes.
+		def scrivHyperlinkDriver(dom, fldPara, fldrslt):
+
+			curParNode = dom.curNode.parent
+			href = fldPara[1:len(fldPara) - 1]
+
+			# We have just a plain hyperlink, so pass through to the original
+			# field driver.
+			if ('scrivcmt://' != href[0:11]):
+				dom.runDefaultFieldDriver('HYPERLINK', fldPara, fldrslt)
+
+			# We have a Scrivener-specific hyperlink, which means we've
+			# encountered either a comment or a footnote and have to do some
+			# extra custom logic to parse it out.
+			else:
+
+				# First, parse the comments XML file associated with the chapter
+				# we're currently processing.
+				try:
+					commentsXML = ET.parse(self._curChapterFilenamePrefix + '.comments')
+				except:
+					raise Exception('Failed to parse ' + self._curChapterFilenamePrefix + '.comments')
+
+				comments = commentsXML.findall("./Comment[@ID='" + href[11:] + "']")
+
+				# Comment element couldn't be found, or it's not a footnote, so
+				# instead, append the text without the footnote.
+				if (
+					not comments or
+					not comments[0].get('Footnote') or
+					'Yes' != comments[0].get('Footnote')
+				):
+					dom.insertFldrslt(fldrslt)
+
+				# The footnote exists, so go ahead and append it to the DOM.
+				else:
+
+					subTree = RTFDOM()
+					subTree.openString(comments[0].text)
+					subTree.parse()
+
+					curParNode = dom.curNode.parent
+
+					# If the previous text element was empty, it's unnecessary and can
+					# be removed to simplify the tree.
+					if 0 == len(dom.curNode.value):
+						dom.removeCurNode()
+
+					# Footnote is the only element other than RTFElement that
+					# accepts paragraphs as child nodes.
+					footnoteNode = elements.FootnoteElement()
+					footnoteNode.attributes['text'] = self.__parseRTFDOMParagraph(RTFDOM.parseSubRTF('{' + fldrslt + '}').children[0])
+					for paraNode in subTree.rootNode.children:
+						footnoteNode.appendChild(paraNode)
+
+					curParNode.appendChild(footnoteNode)
+
+					# Insert a new empty text element into the current paragraph
+					# after the footnote so we can continue appending new text.
+					dom.initTextElement(curParNode)
+
+		#####
+
+		self.domTree.registerFieldDriver('HYPERLINK', scrivHyperlinkDriver)
+
+	##########################################################################
+
+	# Opens up a ZIP file for input and passes back the path to the extracted
+	# contents.
+	def __openZipInput(self, filename):
+
+		try:
+
+			os.mkdir(self.extractPath)
+			archive = zipfile.ZipFile(filename)
+
+			# This should be safe as of Python 2.7.4, which adds path
+			# traversal protection
+			archive.extractall(self.extractPath)
+			return self.extractPath
+
+		except OSError:
+			raise Exception('Error occurred during extraction. This is a bug.')
+
+		except zipfile.BadZipfile:
+			raise Exception('ZIP file is invalid.')
+
+		except:
+			raise Exception('Could not extract ZIP file.')
+
+	##########################################################################
+
+	# Constructor
+	def __init__(self, tmpLocation = '/tmp'):
+
+		super().__init__()
+
+		# Initialize the RTF parser
+		self.__domTree = RTFDOM()
+		self.__registerCustomFieldDrivers()
+
+		# Generate a unique ID that can be used in /tmp to avoid collisions
+		# during concurrently running instances.
+		self.__uid = str(binascii.hexlify(os.urandom(16))).replace("'", '')[1:]
+		self.__tmpOutputDir = tmpLocation + '/' + self.__uid
+
+		# Where we extract ZIP archives, if a ZIP archive was passed as input
+		self.__extractPath = self.__tmpOutputDir + '_input'
+
+	##########################################################################
+
+	def open(self):
+
+		super().open()
+
+		# Add support for ZIP archives
+		if '.zip' == self.__inputPath[-4:].lower():
+			self.__inputPath = self.__openZipInput(self.__inputPath)
+
+	##########################################################################
+
+	# Iterates through a Scrivener project and parses each contained chapter.
+	# Recursively enters project folders. The first folder, if it exists, will
+	# be treated as a "part," a subdivision above chapter.
+	def parse(self, parentNode = False, depth = 0):
+
+		if not parentNode:
+
+			scrivxPath = False
+
+			for filename in os.listdir(self.__inputPath):
+				if filename.endswith('.scrivx'):
+					scrivxPath = os.path.join(self.__inputPath, filename)
+					break
+
+			if not scrivxPath:
+				raise Exception(self.__inputPath + ' is not a valid Scrivener project.')
+
+			try:
+				tree = ET.parse(scrivxPath)
+			except:
+				raise Exception('Failed to open ' + scrivxPath + ' for parsing.')
+
+			parentNode = tree.getroot()
+
+			if parentNode.tag != 'ScrivenerProject':
+				raise Exception(self.__inputPath + ' is not a valid Scrivener project.')
+
+			# We only want to process files found in the Draft Folder. Notes and
+			# other things in other zero depth folders should be ignored.
+			for binderItem in parentNode.find('Binder').findall('BinderItem'):
+				if 'DraftFolder' == binderItem.attrib['Type']:
+					self.parse(binderItem.find('Children'), depth)
+					return
+
+		for binderItem in parentNode:
+
+			chapterTitle = binderItem.find('Title').text
+
+			# Make sure root chapters always show up in the root of the table of
+			# contents. Without this line of code, if there's a previously
+			# processed part, the chapter will be added to it even if the chapter
+			# is supposed to be outside of it.
+			if 0 == depth and ('Text' == binderItem.attrib['Type'] or 'Folder' == binderItem.attrib['Type']):
+				self.__closePart()
+
+			# Chapter
+			if 'Text' == binderItem.attrib['Type']:
+
+				print('Processing Chapter "' + chapterTitle + '"...')
+
+				self._curChapterFilenamePrefix = self.__inputPath + '/Files/Docs/' + binderItem.attrib['ID']
+
+				rtfFile = open(self._curChapterFilenamePrefix  + '.rtf')
+				rtfStr = rtfFile.read()
+				rtfFile.close()
+
+				# HACK: place the chapter title at the top of the RTF string.
+				# processChapter() will know what to do with it.
+				self.__parseChapter(chapterTitle + '\n' + rtfStr)
+
+			# A titled part of the book containing chapters
+			elif 'Folder' == binderItem.attrib['Type']:
+				if 0 == depth:
+					print('Processing Part "' + chapterTitle + '"...')
+					self.__openPart(chapterTitle)
+				self.processChapters(self.__inputPath, binderItem.find('Children'), depth + 1)
+
+		# Once we've finished parsing all the chapters, return that data so it
+		# can be transformed by an output driver.
+		if 0 == depth:
+			return {
+				'chapters': self.__chapters,
+				'toc': self.__chapterLog
+			}
+
+	##########################################################################
+
+	# If we extracted a ZIP archive, we need to delete those temporary files.
+	def cleanup(self):
+
+		try:
+			if os.path.exists(self.__extractPath):
+				shutil.rmtree(self.__extractPath)
+
+		# If for some reason we can't remove these files, I don't want a backend
+		# process on a server to return with an error. So we'll just silently
+		# fail and monitor /tmp from time to time to make sure it doesn't fill
+		# up with too many files.
+		except:
+			pass
+
