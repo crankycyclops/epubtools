@@ -15,43 +15,43 @@ class Driver:
 	def __init__(self, bookLang, bookPublisher, bookAuthor, bookTitle, pubDate,
 	copyrightYear, includeCopyright, isFiction, coverPath):
 
-		self.bookLang = bookLang
-		if not self.bookLang:
+		self._bookLang = bookLang
+		if not self._bookLang:
 			raise Exception('Book language is blank. (Example: "en-US")')
 
-		self.bookPublisher = bookPublisher
-		if not self.bookPublisher:
+		self._bookPublisher = bookPublisher
+		if not self._bookPublisher:
 			raise Exception('Book publisher is blank.')
 
-		self.bookAuthor = bookAuthor
-		if not self.bookAuthor:
+		self._bookAuthor = bookAuthor
+		if not self._bookAuthor:
 			raise Exception('Book author is blank.')
 
-		self.bookTitle = bookTitle
-		if not self.bookTitle:
+		self._bookTitle = bookTitle
+		if not self._bookTitle:
 			raise Exception('Book title is blank.')
 
-		self.pubDate = pubDate
-		if not self.pubDate:
+		self._pubDate = pubDate
+		if not self._pubDate:
 			raise Exception('Publication date is blank. (Format: YYYY-MM-DD)')
 
 		# Quick sanity check on the publication date (doesn't catch all errors, so user beware!)
 		validPubDateRegex = re.compile('(\d{4})-(\d{2})-(\d{2})')
-		pubDateValidator = validPubDateRegex.search(self.pubDate)
+		pubDateValidator = validPubDateRegex.search(self._pubDate)
 
 		if not pubDateValidator or int(pubDateValidator.group(2)) < 1 or int(pubDateValidator.group(2)) > 12 or int(pubDateValidator.group(3)) < 1 or int(pubDateValidator.group(3)) > 31:
 			raise Exception('Invalid publication date. Must be YYYY-MM-DD.')
 
-		self.copyrightYear = copyrightYear
-		if not self.copyrightYear:
+		self._copyrightYear = copyrightYear
+		if not self._copyrightYear:
 			raise Exception('Copyright year is blank.')
 
-		self.coverPath = coverPath
-		if not self.coverPath:
+		self._coverPath = coverPath
+		if not self._coverPath:
 			raise Exception('Path to cover is required but missing.')
 
-		self.includeCopyright = includeCopyright
-		self.isFiction = isFiction
+		self._includeCopyright = includeCopyright
+		self._isFiction = isFiction
 
 	##########################################################################
 

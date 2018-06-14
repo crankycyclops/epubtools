@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-# TODO: see which of these modules I'm still using after refactor and remove
-# whichever I don't need.
-import re, os, zipfile, shutil, binascii
+import os, zipfile, shutil, binascii
 import xml.etree.ElementTree as ET
-
-import util
-from driver import Driver
 
 from pyrtfdom.dom import RTFDOM
 from pyrtfdom import elements
+
+from .driver import Driver
+from ..domnode import EbookNode
+
+import util
 
 class Scrivener(Driver):
 
@@ -84,7 +84,7 @@ class Scrivener(Driver):
 
 		#####
 
-		self.domTree.registerFieldDriver('HYPERLINK', scrivHyperlinkDriver)
+		self.__domTree.registerFieldDriver('HYPERLINK', scrivHyperlinkDriver)
 
 	##########################################################################
 
@@ -113,6 +113,19 @@ class Scrivener(Driver):
 
 	##########################################################################
 
+	# Uses RTFDOM to parse an individual chapter and adds it to the ebook's DOM.
+	def __parseChapter(self, filename):
+
+		self.__domTree.openFile(filename)
+		self.__domTree.parse()
+
+		for child in self.__domTree.rootNode.children:
+			self._curDOMNode.appendChild(child)
+
+		self._curDOMNode = self._curDOMNode.parent
+
+	##########################################################################
+
 	# Constructor
 	def __init__(self, tmpLocation = '/tmp'):
 
@@ -132,13 +145,13 @@ class Scrivener(Driver):
 
 	##########################################################################
 
-	def open(self):
+	def open(self, filename):
 
-		super().open()
+		super().open(filename)
 
 		# Add support for ZIP archives
-		if '.zip' == self.__inputPath[-4:].lower():
-			self.__inputPath = self.__openZipInput(self.__inputPath)
+		if '.zip' == self._inputPath[-4:].lower():
+			self._inputPath = self.__openZipInput(self._inputPath)
 
 	##########################################################################
 
@@ -151,13 +164,13 @@ class Scrivener(Driver):
 
 			scrivxPath = False
 
-			for filename in os.listdir(self.__inputPath):
+			for filename in os.listdir(self._inputPath):
 				if filename.endswith('.scrivx'):
-					scrivxPath = os.path.join(self.__inputPath, filename)
+					scrivxPath = os.path.join(self._inputPath, filename)
 					break
 
 			if not scrivxPath:
-				raise Exception(self.__inputPath + ' is not a valid Scrivener project.')
+				raise Exception(self._inputPath + ' is not a valid Scrivener project.')
 
 			try:
 				tree = ET.parse(scrivxPath)
@@ -167,7 +180,7 @@ class Scrivener(Driver):
 			parentNode = tree.getroot()
 
 			if parentNode.tag != 'ScrivenerProject':
-				raise Exception(self.__inputPath + ' is not a valid Scrivener project.')
+				raise Exception(self._inputPath + ' is not a valid Scrivener project.')
 
 			# We only want to process files found in the Draft Folder. Notes and
 			# other things in other zero depth folders should be ignored.
@@ -185,37 +198,29 @@ class Scrivener(Driver):
 			# processed part, the chapter will be added to it even if the chapter
 			# is supposed to be outside of it.
 			if 0 == depth and ('Text' == binderItem.attrib['Type'] or 'Folder' == binderItem.attrib['Type']):
-				self.__closePart()
+				self._curDOMNode = self._DOMRoot
 
 			# Chapter
 			if 'Text' == binderItem.attrib['Type']:
 
 				print('Processing Chapter "' + chapterTitle + '"...')
 
-				self._curChapterFilenamePrefix = self.__inputPath + '/Files/Docs/' + binderItem.attrib['ID']
+				self._curChapterFilenamePrefix = self._inputPath + '/Files/Docs/' + binderItem.attrib['ID']
+				self.__parseChapter(self._curChapterFilenamePrefix  + '.rtf')
 
-				rtfFile = open(self._curChapterFilenamePrefix  + '.rtf')
-				rtfStr = rtfFile.read()
-				rtfFile.close()
-
-				# HACK: place the chapter title at the top of the RTF string.
-				# processChapter() will know what to do with it.
-				self.__parseChapter(chapterTitle + '\n' + rtfStr)
-
-			# A titled part of the book containing chapters
 			elif 'Folder' == binderItem.attrib['Type']:
-				if 0 == depth:
-					print('Processing Part "' + chapterTitle + '"...')
-					self.__openPart(chapterTitle)
-				self.processChapters(self.__inputPath, binderItem.find('Children'), depth + 1)
 
-		# Once we've finished parsing all the chapters, return that data so it
-		# can be transformed by an output driver.
-		if 0 == depth:
-			return {
-				'chapters': self.__chapters,
-				'toc': self.__chapterLog
-			}
+				# We've encountered a titled part of the book containing chapters
+				if 0 == depth:
+
+					print('Processing Part "' + chapterTitle + '"...')
+
+					partNode = EbookNode('part')
+					partNode.value = chapterTitle
+					self._curDOMNode.appendChild(partNode)
+					self._curDOMNode = partNode
+
+				self.processChapters(self._inputPath, binderItem.find('Children'), depth + 1)
 
 	##########################################################################
 

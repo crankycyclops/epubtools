@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys, subprocess, argparse
+import sys, argparse
 import util
 
 import drivers.input
@@ -25,7 +25,7 @@ parser.add_argument(
 	'-O',
 	dest='OUTPUT_DRIVER',
 	nargs=1,
-	default='epub',
+	default=['epub'],
 	help='Default: epub'
 )
 
@@ -130,7 +130,7 @@ try:
 # error instead.
 except Exception as error:
 
-	util.eprint('\nDriver ' + inputDriver + ' is not supported.\n')
+	util.eprint('\nDriver ' + args.INPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
 	sys.exit(3)
 
 try:
@@ -145,7 +145,7 @@ try:
 # just get passed through.
 except Exception as error:
 
-	util.eprint('\nDriver ' + inputDriver + ' is not supported.\n')
+	util.eprint('\nDriver ' + args.OUTPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
 	sys.exit(3)
 
 ###############################################################################
@@ -153,10 +153,11 @@ except Exception as error:
 # Create the e-book :)
 try:
 
-	process = new Process(inputDriver, outputDriver)
+	process = Process(inputDriver, outputDriver)
 
 	process.open(args.INPUT)
 	process.convert(args.OUTPUT)
+	sys.exit(0)
 	process.cleanup()
 
 	sys.exit(0)
