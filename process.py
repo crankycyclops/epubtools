@@ -29,7 +29,7 @@ class Process:
 	##########################################################################
 
 	# Clean up after ourselves when we're finished.
-	def cleanup():
+	def cleanup(self):
 
 		self.__inputDriver.cleanup()
 		self.__outputDriver.cleanup()

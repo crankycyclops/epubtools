@@ -5,6 +5,8 @@ GENERATED_COVER_WIDTH=1000
 GENERATED_COVER_HEIGHT=1600
 
 import shutil, re, os, binascii
+
+import util
 from .driver import Driver
 
 scriptPath = os.path.dirname(os.path.realpath(__file__))
@@ -168,8 +170,8 @@ class Epub(Driver):
 	# the variables defined by self.__initTemplateVars.
 	def __hydrate(self, template):
 
-		for var in self.templateVars.keys():
-			template = template.replace(var, self.templateVars[var])
+		for var in self.__templateVars.keys():
+			template = template.replace(var, self.__templateVars[var])
 
 		return template
 
@@ -345,7 +347,7 @@ class Epub(Driver):
 		chapterFilename = self.__tmpOutputDir + '/OEBPS/' + str(self.__curChapterIndex).zfill(3) + '_' + chapterSlug + '.xhtml'
 		open(chapterFilename, 'w').write(outputXHTML)
 
-		self.curTOCPart.append({
+		self.__curTOCPart.append({
 			'chapter': chapterNode.value,
 			'chapterSlug': chapterSlug,
 			'chapterIndex': self.__curChapterIndex,
@@ -430,7 +432,7 @@ class Epub(Driver):
 
 			try:
 
-				template = self.__hydrate(open(scriptPath + '/../../templates/' + templateName, 'r').read())
+				template = self.__hydrate(open(__file__[:-3] + '/templates/' + templateName, 'r').read())
 
 				try:
 					open(self.__tmpOutputDir + '/OEBPS/' + templateName, 'w').write(template)
@@ -438,6 +440,7 @@ class Epub(Driver):
 					raise Exception('Failed to write ' + templateName + '.')
 
 			except:
+				print(__file__[:-3] + '/templates/' + templateName)
 				raise Exception('Failed to read ' + templateName + ' template.')
 
 		# Copy the cover (WARNING: should not exceed 1000 pixels in longest

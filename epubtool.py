@@ -133,38 +133,33 @@ except Exception as error:
 	util.eprint('\nDriver ' + args.INPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
 	sys.exit(3)
 
-#try:
+try:
 
-OutputDriverClass = getattr(drivers.output, args.OUTPUT_DRIVER[0].lower().capitalize())
-outputDriver = OutputDriverClass(args.LANGUAGE[0], args.PUBNAME[0], args.AUTHOR[0],
-		args.TITLE[0], args.DATE[0], str(args.YEAR[0]), args.includeCopyright,
-		args.isFiction, args.COVER[0])
+	OutputDriverClass = getattr(drivers.output, args.OUTPUT_DRIVER[0].lower().capitalize())
+	outputDriver = OutputDriverClass(args.LANGUAGE[0], args.PUBNAME[0], args.AUTHOR[0],
+			args.TITLE[0], args.DATE[0], str(args.YEAR[0]), args.includeCopyright,
+			args.isFiction, args.COVER[0])
 
 # TODO: if exception thrown from within class, we need to catch that and report its
 # error instead. Can catch a specific kind of error, then any other errors
 # just get passed through.
-#except Exception as error:
+except Exception as error:
 
-#	util.eprint('\nDriver ' + args.OUTPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
-#	sys.exit(3)
+	util.eprint('\nDriver ' + args.OUTPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
+	sys.exit(3)
 
 ###############################################################################
 
 # Create the e-book :)
-try:
+process = Process(inputDriver, outputDriver)
 
-	process = Process(inputDriver, outputDriver)
+try:
 
 	process.open(args.INPUT)
 	process.convert(args.OUTPUT)
 	process.cleanup()
 
 	sys.exit(0)
-
-#	inputDriver.openInput(args.INPUT)
-#	inputDriver.processBook(args.OUTPUT)
-#	inputDriver.cleanup()
-#	sys.exit(0)
 
 # Boo!
 except Exception as error:
@@ -174,6 +169,6 @@ except Exception as error:
 	traceback.print_tb(error.__traceback__)
 	util.eprint('\nError: ' + error.args[0] + '\n')
 
-	driver.cleanup()
+	process.cleanup()
 	sys.exit(4)
 

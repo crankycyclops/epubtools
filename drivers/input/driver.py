@@ -49,3 +49,33 @@ class Driver:
 
 		pass
 
+	###########################################################################
+
+	# A debug method that allows me to see what the parsed DOM looks like.
+	def printTree(self, curNode = None, indent = ''):
+
+		if curNode is None:
+			curNode = self.DOMRoot
+
+		nodeAttributes = '{'
+		for key in curNode.attributes.keys():
+			nodeAttributes += "'" + key + "': " + str(curNode.attributes[key]) + ", "
+		if len(nodeAttributes) > 1:
+			nodeAttributes = nodeAttributes[0:len(nodeAttributes) - 2]
+		nodeAttributes += '}'
+
+		if isinstance(curNode.value, (bytes, bytearray)):
+			nodeValue = '<Binary Data>'
+		else:
+			nodeValue = curNode.value
+
+		print('')
+		print(indent + 'nodeType: ' + curNode.nodeType)
+		print(indent + 'attributes: ' + nodeAttributes)
+		print(indent + 'value: ' + nodeValue)
+		print(indent + 'children: ' + str(curNode.childCount()))
+
+		if curNode.children:
+			for child in curNode.children:
+				self.printTree(child, indent + '\t')
+

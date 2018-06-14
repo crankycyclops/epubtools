@@ -114,15 +114,18 @@ class Scrivener(Driver):
 	##########################################################################
 
 	# Uses RTFDOM to parse an individual chapter and adds it to the ebook's DOM.
-	def __parseChapter(self, filename):
+	def __parseChapter(self, chapterTitle, filename):
+
+		chapterNode = EbookNode('chapter')
+		chapterNode.value = chapterTitle
 
 		self.__domTree.openFile(filename)
 		self.__domTree.parse()
 
 		for child in self.__domTree.rootNode.children:
-			self._curDOMNode.appendChild(child)
+			chapterNode.appendChild(child)
 
-		self._curDOMNode = self._curDOMNode.parent
+		self._curDOMNode.appendChild(chapterNode)
 
 	##########################################################################
 
@@ -206,7 +209,7 @@ class Scrivener(Driver):
 				print('Processing Chapter "' + chapterTitle + '"...')
 
 				self._curChapterFilenamePrefix = self._inputPath + '/Files/Docs/' + binderItem.attrib['ID']
-				self.__parseChapter(self._curChapterFilenamePrefix  + '.rtf')
+				self.__parseChapter(chapterTitle, self._curChapterFilenamePrefix  + '.rtf')
 
 			elif 'Folder' == binderItem.attrib['Type']:
 
@@ -220,7 +223,7 @@ class Scrivener(Driver):
 					self._curDOMNode.appendChild(partNode)
 					self._curDOMNode = partNode
 
-				self.processChapters(self._inputPath, binderItem.find('Children'), depth + 1)
+				self.parse(self._inputPath, binderItem.find('Children'), depth + 1)
 
 	##########################################################################
 
