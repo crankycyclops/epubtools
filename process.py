@@ -23,9 +23,8 @@ class Process:
 	# to the specified filename.
 	def convert(self, filename):
 
-		chapterData = self.__inputDriver.parse()
-		self.__outputDriver.transform(chapterData)
-		self.__outputDriver.write(filename)
+		self.__inputDriver.parse()
+		self.__outputDriver.transform(self.__inputDriver.DOMRoot, filename)
 
 	##########################################################################
 

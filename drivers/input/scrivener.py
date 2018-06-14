@@ -198,7 +198,7 @@ class Scrivener(Driver):
 			# processed part, the chapter will be added to it even if the chapter
 			# is supposed to be outside of it.
 			if 0 == depth and ('Text' == binderItem.attrib['Type'] or 'Folder' == binderItem.attrib['Type']):
-				self._curDOMNode = self._DOMRoot
+				self._curDOMNode = self.DOMRoot
 
 			# Chapter
 			if 'Text' == binderItem.attrib['Type']:

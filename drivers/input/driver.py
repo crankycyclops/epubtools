@@ -15,10 +15,10 @@ class Driver:
 
 		# We use a DOM-like structure to represent the contents of an ebook.
 		# Parts and chapters are all children of this node.
-		self._DOMRoot = EbookNode('ebook')
+		self.DOMRoot = EbookNode('ebook')
 
 		# Represents our current location in the ebook's "DOM" while parsing.
-		self._curDOMNode = self._DOMRoot
+		self._curDOMNode = self.DOMRoot
 
 	##########################################################################
 

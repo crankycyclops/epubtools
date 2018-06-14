@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import shutil, re, os
+import re, os
 from abc import ABCMeta, abstractmethod
 
 # Output driver base class
@@ -55,9 +55,10 @@ class Driver:
 
 	##########################################################################
 
-	# Writes the output to disk and throws an exception if the process fails.
+	# Transforms the input DOM-like structure into an e-book format and writes
+	# the result to disk.
 	@abstractmethod
-	def write(self, filename):
+	def transform(self, DOMRoot, filename):
 
 		pass
 
