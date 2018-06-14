@@ -1,6 +1,7 @@
 Epubtools takes as input a series of chapters in a supported format and outputs
-a valid EPUB-2 e-book. Note that if you run epubcheck on the result, you'll get
-the following two errors:
+a valid e-book in a supported format. At one time, this was only EPUB-2, but now
+other output drivers can be added. Note that if you run epubcheck on the result
+of an EPUB-2 output, you'll get the following two errors:
 
 ERROR: attribute "opf:role" not allowed here; expected attribute "dir" or "xml:lang"
 ERROR: attribute "opf:file-as" not allowed here; expected attribute "dir" or "xml:lang"
