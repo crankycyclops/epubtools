@@ -8,6 +8,7 @@ import shutil, re, os, binascii
 
 import util
 from .driver import Driver
+from exception import OutputException
 
 scriptPath = os.path.dirname(os.path.realpath(__file__))
 
@@ -190,7 +191,7 @@ class Epub(Driver):
 			util.zipdirs([self.__tmpOutputDir + '/META-INF', self.__tmpOutputDir + '/OEBPS'], filename, self.__tmpOutputDir)
 
 		except:
-			raise Exception('Failed to write output file ' + filename)
+			raise OutputException('Failed to write output file ' + filename)
 
 	##########################################################################
 
@@ -397,7 +398,7 @@ class Epub(Driver):
 			os.mkdir(self.__tmpOutputDir + '/META-INF')
 
 		except:
-			raise Exception('Failed to create temporary output directory.')
+			raise OutputException('Failed to create temporary output directory.')
 
 		# Write out the book's mimetype
 		try:
@@ -406,7 +407,7 @@ class Epub(Driver):
 			mimetypeFile.close()
 
 		except:
-			raise Exception('Failed to write mimetype.')
+			raise OutputException('Failed to write mimetype.')
 
 		# Output parts and chapters
 		for child in DOMRoot.children:
@@ -437,11 +438,11 @@ class Epub(Driver):
 				try:
 					open(self.__tmpOutputDir + '/OEBPS/' + templateName, 'w').write(template)
 				except:
-					raise Exception('Failed to write ' + templateName + '.')
+					raise OutputException('Failed to write ' + templateName + '.')
 
 			except:
 				print(__file__[:-3] + '/templates/' + templateName)
-				raise Exception('Failed to read ' + templateName + ' template.')
+				raise OutputException('Failed to read ' + templateName + ' template.')
 
 		# Copy the cover (WARNING: should not exceed 1000 pixels in longest
 		# dimension to avoid crashing older e-readers.)
@@ -458,7 +459,7 @@ class Epub(Driver):
 				try:
 					subprocess.check_output(shlex.split('convert --version'))
 				except:
-					raise Exception('Imagemagick must be installed before you can generate a cover.')
+					raise OutputException('Imagemagick must be installed before you can generate a cover.')
 
 				subprocess.check_call(shlex.split('convert -background black -size ' + str(GENERATED_COVER_WIDTH) + 'x' + str(GENERATED_COVER_HEIGHT / 2) + ' -fill "#ffffff" -pointsize 110 -gravity center label:"' + self._bookTitle + '" -pointsize 60 label:"' + self._bookAuthor + '" -append ' + self.__tmpOutputDir + '/OEBPS/Cover.jpg'))
 
@@ -470,7 +471,7 @@ class Epub(Driver):
 
 		except Exception as e:
 
-			raise Exception('Could not copy or generate cover: ' + str(e))
+			raise OutputException('Could not copy or generate cover: ' + str(e))
 
 		# Finally, write the ePub file. Phew!
 		self.__zipBook(filename)

@@ -2,6 +2,7 @@
 
 import re, os
 from abc import ABCMeta, abstractmethod
+from exception import OutputException
 
 # Output driver base class
 class Driver:
@@ -17,38 +18,38 @@ class Driver:
 
 		self._bookLang = bookLang
 		if not self._bookLang:
-			raise Exception('Book language is blank. (Example: "en-US")')
+			raise OutputException('Book language is blank. (Example: "en-US")')
 
 		self._bookPublisher = bookPublisher
 		if not self._bookPublisher:
-			raise Exception('Book publisher is blank.')
+			raise OutputException('Book publisher is blank.')
 
 		self._bookAuthor = bookAuthor
 		if not self._bookAuthor:
-			raise Exception('Book author is blank.')
+			raise OutputException('Book author is blank.')
 
 		self._bookTitle = bookTitle
 		if not self._bookTitle:
-			raise Exception('Book title is blank.')
+			raise OutputException('Book title is blank.')
 
 		self._pubDate = pubDate
 		if not self._pubDate:
-			raise Exception('Publication date is blank. (Format: YYYY-MM-DD)')
+			raise OutputException('Publication date is blank. (Format: YYYY-MM-DD)')
 
 		# Quick sanity check on the publication date (doesn't catch all errors, so user beware!)
 		validPubDateRegex = re.compile('(\d{4})-(\d{2})-(\d{2})')
 		pubDateValidator = validPubDateRegex.search(self._pubDate)
 
 		if not pubDateValidator or int(pubDateValidator.group(2)) < 1 or int(pubDateValidator.group(2)) > 12 or int(pubDateValidator.group(3)) < 1 or int(pubDateValidator.group(3)) > 31:
-			raise Exception('Invalid publication date. Must be YYYY-MM-DD.')
+			raise OutputException('Invalid publication date. Must be YYYY-MM-DD.')
 
 		self._copyrightYear = copyrightYear
 		if not self._copyrightYear:
-			raise Exception('Copyright year is blank.')
+			raise OutputException('Copyright year is blank.')
 
 		self._coverPath = coverPath
 		if not self._coverPath:
-			raise Exception('Path to cover is required but missing.')
+			raise OutputException('Path to cover is required but missing.')
 
 		self._includeCopyright = includeCopyright
 		self._isFiction = isFiction

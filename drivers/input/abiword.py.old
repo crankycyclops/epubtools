@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re, os, sys, subprocess, shutil, collections
-import util, driver
+import util
 
 class Abiword(driver.Driver):
 

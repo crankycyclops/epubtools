@@ -6,6 +6,8 @@ import util
 
 import drivers.input
 import drivers.output
+import exception
+
 from process import Process
 
 ###############################################################################
@@ -126,9 +128,7 @@ try:
 	InputDriverClass = getattr(drivers.input, args.INPUT_DRIVER[0].lower().capitalize())
 	inputDriver = InputDriverClass()
 
-# TODO: if exception thrown from within class, we need to catch that and report its
-# error instead.
-except Exception as error:
+except InputException as error:
 
 	util.eprint('\nDriver ' + args.INPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
 	sys.exit(3)
@@ -140,10 +140,7 @@ try:
 			args.TITLE[0], args.DATE[0], str(args.YEAR[0]), args.includeCopyright,
 			args.isFiction, args.COVER[0])
 
-# TODO: if exception thrown from within class, we need to catch that and report its
-# error instead. Can catch a specific kind of error, then any other errors
-# just get passed through.
-except Exception as error:
+except OutputException as error:
 
 	util.eprint('\nDriver ' + args.OUTPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
 	sys.exit(3)

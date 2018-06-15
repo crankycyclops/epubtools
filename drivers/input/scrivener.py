@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 from pyrtfdom.dom import RTFDOM
 from pyrtfdom import elements
 
+from exception import InputException
 from .driver import Driver
 from ..domnode import EbookNode
 
@@ -42,7 +43,7 @@ class Scrivener(Driver):
 				try:
 					commentsXML = ET.parse(self._curChapterFilenamePrefix + '.comments')
 				except:
-					raise Exception('Failed to parse ' + self._curChapterFilenamePrefix + '.comments')
+					raise InputException('Failed to parse ' + self._curChapterFilenamePrefix + '.comments')
 
 				comments = commentsXML.findall("./Comment[@ID='" + href[11:] + "']")
 
@@ -103,13 +104,13 @@ class Scrivener(Driver):
 			return self.extractPath
 
 		except OSError:
-			raise Exception('Error occurred during extraction. This is a bug.')
+			raise InputException('Error occurred during input ZIP extraction. This is a bug.')
 
 		except zipfile.BadZipfile:
-			raise Exception('ZIP file is invalid.')
+			raise InputException('Input ZIP file is invalid.')
 
 		except:
-			raise Exception('Could not extract ZIP file.')
+			raise InputException('Could not extract input ZIP file.')
 
 	##########################################################################
 
@@ -173,17 +174,17 @@ class Scrivener(Driver):
 					break
 
 			if not scrivxPath:
-				raise Exception(self._inputPath + ' is not a valid Scrivener project.')
+				raise InputException(self._inputPath + ' is not a valid Scrivener project.')
 
 			try:
 				tree = ET.parse(scrivxPath)
 			except:
-				raise Exception('Failed to open ' + scrivxPath + ' for parsing.')
+				raise InputException('Failed to open ' + scrivxPath + ' for parsing.')
 
 			parentNode = tree.getroot()
 
 			if parentNode.tag != 'ScrivenerProject':
-				raise Exception(self._inputPath + ' is not a valid Scrivener project.')
+				raise InputException(self._inputPath + ' is not a valid Scrivener project.')
 
 			# We only want to process files found in the Draft Folder. Notes and
 			# other things in other zero depth folders should be ignored.
