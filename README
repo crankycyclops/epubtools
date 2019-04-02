@@ -11,4 +11,4 @@ See: https://github.com/IDPF/epubcheck/issues/467
 
 This package requires Python 3.x or above and the PyRTFDOM package (https://github.com/crankycyclops/pyrtfdom)
 
-NOTE: the Abiword and RTF input drivers are currently broken and still need to be ported to be compatible with the changes in the pyrtfdom branch that I merged too soon -- woops!)
+NOTE: the Abiword and RTF input drivers are currently broken and still need to be ported to be compatible with the changes in the pyrtfdom branch that I merged too soon -- woops!) For code where these still work, see: https://github.com/crankycyclops/epubtools/commit/aa6628b19cab3ae94bd73b607e779b9dcf0eea30
