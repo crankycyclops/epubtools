@@ -400,11 +400,12 @@ class Epub(Driver):
 		except:
 			raise OutputException('Failed to create temporary output directory.')
 
-		# Write out the book's mimetype
+		# Write out the book's mimetype and meta info
 		try:
 			mimetypeFile = open(self.__tmpOutputDir + '/mimetype', 'w')
 			mimetypeFile.write('application/epub+zip')
 			mimetypeFile.close()
+			shutil.copyfile(__file__[:-3] + '/templates/container.xml', self.__tmpOutputDir + '/META-INF/container.xml')
 
 		except:
 			raise OutputException('Failed to write mimetype.')
