@@ -9,4 +9,4 @@ ERROR: attribute "opf:file-as" not allowed here; expected attribute "dir" or "xm
 This is not because it's an invalid EPUB-2 file. For an explanation of the issue,
 See: https://github.com/IDPF/epubcheck/issues/467
 
-This package requires Python 3.x or above.
+This package requires Python 3.x or above and the PyRTFDOM package (https://github.com/crankycyclops/pyrtfdom)
