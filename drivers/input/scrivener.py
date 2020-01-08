@@ -14,8 +14,6 @@ import util
 
 class Scrivener(Driver):
 
-	##########################################################################
-
 	# Scrivener footnotes are implemented internally as a special type of
 	# hyperlink field, so I need to override this field type (and possibly
 	# others in the future.)
@@ -72,6 +70,9 @@ class Scrivener(Driver):
 
 					# Footnote is the only element other than RTFElement that
 					# accepts paragraphs as child nodes.
+					# TODO: the call to __parseRTFDOMParagraph is a bug,
+					# but I'm going to wait to dive into this until I've
+					# fully immersed myself in the code again...
 					footnoteNode = elements.FootnoteElement()
 					footnoteNode.attributes['text'] = self.__parseRTFDOMParagraph(RTFDOM.parseSubRTF('{' + fldrslt + '}').children[0])
 					for paraNode in subTree.rootNode.children:
@@ -241,4 +242,3 @@ class Scrivener(Driver):
 		# up with too many files.
 		except:
 			pass
-

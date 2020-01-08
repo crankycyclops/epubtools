@@ -12,4 +12,3 @@ class EbookNode(elements.DOMElement):
 	def __init__(self, nodeType):
 
 		super().__init__(nodeType)
-

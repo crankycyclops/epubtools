@@ -238,8 +238,6 @@ class Epub(Driver):
 	# Utility function to recursively parse an RTFDOM paragraph node into XHTML.
 	def __parseRTFDOMParagraph(self, paragraphNode, depth = 0):
 
-		# Strikethrough command relies on the inclusion of the 'ulem' package in
-		# the latex template.
 		elementTypes = {
 			'bold': {'prefix': '<strong>', 'postfix': '</strong>'},
 			'italic': {'prefix': '<em>', 'postfix': '</em>'},
@@ -251,8 +249,7 @@ class Epub(Driver):
 
 		for child in paragraphNode.children:
 
-			# Append text element, and if we've encountered an empty paragraph,
-			# make sure we insert markup so Latex knows to skip a line.
+			# Append text element
 			if 'text' == child.nodeType:
 
 				if child.value:
