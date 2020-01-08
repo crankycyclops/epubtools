@@ -33,4 +33,3 @@ class Process:
 
 		self.__inputDriver.cleanup()
 		self.__outputDriver.cleanup()
-

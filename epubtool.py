@@ -128,9 +128,9 @@ try:
 	InputDriverClass = getattr(drivers.input, args.INPUT_DRIVER[0].lower().capitalize())
 	inputDriver = InputDriverClass()
 
-except InputException as error:
+except AttributeError as error:
 
-	util.eprint('\nDriver ' + args.INPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
+	util.eprint('\nInput driver ' + args.INPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
 	sys.exit(3)
 
 try:
@@ -140,9 +140,9 @@ try:
 			args.TITLE[0], args.DATE[0], str(args.YEAR[0]), args.includeCopyright,
 			args.isFiction, args.COVER[0])
 
-except OutputException as error:
+except AttributeError as error:
 
-	util.eprint('\nDriver ' + args.OUTPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
+	util.eprint('\nOutput driver ' + args.OUTPUT_DRIVER[0].lower().capitalize() + ' is not supported.\n')
 	sys.exit(3)
 
 ###############################################################################
@@ -168,4 +168,3 @@ except Exception as error:
 
 	process.cleanup()
 	sys.exit(4)
-

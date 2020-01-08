@@ -17,4 +17,3 @@ class InputException(EpubtoolException):
 class OutputException(EpubtoolException):
 
 	pass
-

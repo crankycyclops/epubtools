@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from abc import ABCMeta, abstractmethod
+from exception import InputException
 from ..domnode import EbookNode
 
 # Input driver base class
@@ -28,6 +31,9 @@ class Driver:
 	def open(self, filename):
 
 		self._inputPath = filename
+
+		if not os.path.exists(self._inputPath):
+			raise InputException('Could not open ' + self._inputPath + ' for reading.')
 
 	##########################################################################
 
@@ -78,4 +84,3 @@ class Driver:
 		if curNode.children:
 			for child in curNode.children:
 				self.printTree(child, indent + '\t')
-
