@@ -155,7 +155,7 @@ class Scrivener(Driver):
 		super().open(filename)
 
 		# Add support for ZIP archives
-		if '.zip' == self._inputPath[-4:].lower():
+		if self._inputPath.lower().endswith('.zip'):
 			self._inputPath = self.__openZipInput(self._inputPath)
 
 	##########################################################################
@@ -170,7 +170,7 @@ class Scrivener(Driver):
 			scrivxPath = False
 
 			for filename in os.listdir(self._inputPath):
-				if filename.endswith('.scrivx'):
+				if filename.lower().endswith('.scrivx'):
 					scrivxPath = os.path.join(self._inputPath, filename)
 					break
 

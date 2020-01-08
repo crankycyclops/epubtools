@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import re, os, zipfile, shutil
-import util
 
 from pyrtfdom.dom import RTFDOM
 from pyrtfdom import elements
